@@ -39,44 +39,43 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Single unified phase: flip + zoom happen together (0 → 0.65)
-  // Phase pause (0.65 → 1.00): card fully expanded, building visible, shimmer plays
-  const easeInOut = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  // ACTION zone: 0 → 0.60 (flip + zoom lock-step, same easing, same progress)
+  // PAUSE zone:  0.60 → 1.0 (card holds, shimmer plays)
+  const raw = Math.min(1, progress / 0.60);
 
-  const flipZoomP = easeInOut(Math.min(1, progress / 0.65));
-  const pauseP    = Math.max(0, Math.min(1, (progress - 0.65) / 0.35));
+  // Both flip and zoom use identical easing so they move in perfect sync
+  const easeOut = t => 1 - Math.pow(1 - t, 2.8);
+  const p = easeOut(raw);
 
-  // Rotation: 0 → -180deg as flipZoomP goes 0→1
-  const rotateY = -(flipZoomP * 180);
+  // Flip: 0 → -180deg
+  const rotateY = -(p * 180);
 
-  // Size: card starts at BASE, grows to TARGET simultaneously with flip
-  const BASE_W = 700;
-  const BASE_H = 430;
+  // Zoom: card grows from BASE → TARGET, starting immediately at scroll=0
+  const BASE_W = 680;
+  const BASE_H = 420;
   const TARGET_W = vw - CARD_PADDING * 2;
   const TARGET_H = vh - NAV_H - CARD_PADDING * 2;
 
-  const stageW = BASE_W + flipZoomP * (TARGET_W - BASE_W);
-  const stageH = BASE_H + flipZoomP * (TARGET_H - BASE_H);
+  const stageW = BASE_W + p * (TARGET_W - BASE_W);
+  const stageH = BASE_H + p * (TARGET_H - BASE_H);
+  const radius = Math.round(16 - p * 6);
 
-  // Border radius: 16 → 10 as card expands
-  const radius = Math.round(16 - flipZoomP * 6);
-
-  // Center X: interpolates from right-column center → viewport center
+  // Center: card moves from right-column → viewport center, same p
   const rightColStart  = 96 + 500 + 40;
   const rightColCenter = rightColStart + (vw - rightColStart - 64) / 2;
   const viewCenter     = vw / 2;
-  const centerX = rightColCenter + flipZoomP * (viewCenter - rightColCenter);
+  const centerX = rightColCenter + p * (viewCenter - rightColCenter);
   const centerY = NAV_H + (vh - NAV_H) / 2;
 
-  // Hero text fades out in first 30% of flip
-  const heroOpacity = Math.max(0, 1 - (progress / 0.30) * 1.5);
+  // Hero fades in first 25% of action
+  const heroOpacity = Math.max(0, 1 - (raw / 0.25) * 1.4);
 
-  // Background overlay fades as card expands (tied to flipZoomP)
-  const overlayOpacity  = 1 - flipZoomP * 0.75;
-  const creamBgOpacity  = flipZoomP * 0.18;
+  // Overlay fades with the zoom so building reveals as card grows
+  const overlayOpacity = 1 - p * 0.78;
+  const creamBgOpacity = p * 0.15;
 
-  // shimmer animProgress for WhyTeamsBack — starts mid-flip, peaks during pause
-  const shimmerProgress = Math.min(1, flipZoomP * 0.5 + pauseP);
+  const pauseP = Math.max(0, Math.min(1, (progress - 0.60) / 0.40));
+  const shimmerProgress = Math.min(1, p * 0.3 + pauseP);
 
   return (
     <div className="st" ref={wrapRef}>
@@ -88,7 +87,6 @@ export default function ScrollTransition() {
         <div className="st__bg-overlay" style={{ opacity: overlayOpacity }} />
         <div className="st__bg-cream"   style={{ opacity: creamBgOpacity }} />
 
-        {/* Hero text */}
         <div
           className="st__hero-content"
           style={{
@@ -112,7 +110,7 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/* Card — flips and zooms simultaneously */}
+        {/* Card — flip and zoom are pixel-perfectly synchronized */}
         <div
           className="st__stage"
           style={{
@@ -139,7 +137,6 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="st__stats" style={{ opacity: heroOpacity }}>
           {STATS.map(s => (
             <div key={s.label} className="st__stat">
