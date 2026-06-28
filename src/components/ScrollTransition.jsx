@@ -11,8 +11,8 @@ const STATS = [
   { icon: '🛡', value: '24/7', label: 'Support' },
 ];
 
-// Navbar height — keeps expanded card below the nav
 const NAV_H = 64;
+const CARD_PADDING = 48; // gap from viewport edges when fully expanded
 
 export default function ScrollTransition() {
   const wrapRef = useRef(null);
@@ -21,10 +21,7 @@ export default function ScrollTransition() {
   const [vh, setVh] = useState(window.innerHeight);
 
   useEffect(() => {
-    const onResize = () => {
-      setVw(window.innerWidth);
-      setVh(window.innerHeight);
-    };
+    const onResize = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -43,59 +40,75 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Phase 1 (0.00 → 0.35): front flips to 90°
-  // Phase 2 (0.35 → 0.60): 90° → back fully revealed
-  // Phase 3 (0.60 → 1.00): card expands to fill sticky viewport
-  const phase1 = Math.min(1, progress / 0.35);
-  const phase2 = Math.max(0, Math.min(1, (progress - 0.35) / 0.25));
-  const phase3 = Math.max(0, Math.min(1, (progress - 0.60) / 0.40));
+  // Phase 1 (0.00 → 0.30): front flips to 90°
+  // Phase 2 (0.30 → 0.55): 90° → back fully revealed  
+  // Phase 3 (0.55 → 0.75): card expands to fill viewport with padding
+  // Phase 4 (0.75 → 1.00): PAUSE — card stays, building shows through fade
+  const phase1 = Math.min(1, progress / 0.30);
+  const phase2 = Math.max(0, Math.min(1, (progress - 0.30) / 0.25));
+  const phase3 = Math.max(0, Math.min(1, (progress - 0.55) / 0.20));
+  // phase4 is just time passing — card stays put, background fades further
 
   const rotateY = -(phase1 * 90 + phase2 * 90);
 
-  // Card resting size in the right column
+  // Card resting size in right column
   const BASE_W = 700;
   const BASE_H = 430;
 
-  // Available area below navbar
-  const availH = vh - NAV_H;
+  // Target size: viewport minus padding on all sides, minus navbar on top
+  const TARGET_W = vw - CARD_PADDING * 2;
+  const TARGET_H = vh - NAV_H - CARD_PADDING * 2;
 
-  // Expand from BASE size → full available viewport (below navbar, full width)
-  const stageW = BASE_W + phase3 * (vw - BASE_W);
-  const stageH = BASE_H + phase3 * (availH - BASE_H);
+  const stageW = BASE_W + phase3 * (TARGET_W - BASE_W);
+  const stageH = BASE_H + phase3 * (TARGET_H - BASE_H);
+  const radius = Math.round(16 * (1 - phase3 * 0.7)); // keeps slight radius at final state
 
-  // Border radius collapses as card fills screen
-  const radius = Math.round(16 * (1 - phase3));
+  // Card horizontal center:
+  // phase3=0 → center of right column
+  // phase3=1 → viewport center
+  const rightColStart = 96 + 500 + 40; // left padding + hero width + gap
+  const rightColCenter = rightColStart + (vw - rightColStart - 64) / 2;
+  const viewCenter = vw / 2;
+  const centerX = rightColCenter + phase3 * (viewCenter - rightColCenter);
 
-  // During phase3 the card moves from right-column center → full viewport center
-  // We keep it in the sticky container as absolute, centered
-  // Right-column center X ≈ left edge of right column + half its width
-  // Right column starts at ~500px (hero text) + 96px padding + 40px gap
-  const rightColLeft = 500 + 96 + 40;
-  const rightColCenter = rightColLeft + (vw - rightColLeft - 64) / 2; // 64 = right padding
-  const viewportCenter = vw / 2;
-  const centerX = rightColCenter + phase3 * (viewportCenter - rightColCenter);
+  // Card vertical center: always centered in area below navbar
+  const centerY = NAV_H + (vh - NAV_H) / 2;
 
-  // Vertical: center in available area (below navbar)
-  const centerY = NAV_H + availH / 2;
+  const heroOpacity = Math.max(0, 1 - phase1 * 2.5);
 
-  const heroOpacity = Math.max(0, 1 - phase1 * 2);
-  const darkBgOpacity = 1 - phase3;
-  const creamBgOpacity = phase2 * 0.3 + phase3 * 0.7;
+  // Background: dark overlay fades during phase3+4 but building stays visible
+  // At phase3=1: overlay is at 0.25 opacity (building clearly visible)
+  // During phase4 pause: stays at 0.25 — building shows through
+  const overlayOpacity = 1 - phase3 * 0.75;
+
+  // Cream tint appears subtly behind the card area
+  const creamBgOpacity = phase2 * 0.15 + phase3 * 0.20;
+
+  // Stats bar fades with hero
+  const statsOpacity = heroOpacity;
 
   return (
     <div className="st" ref={wrapRef}>
       <div className="st__sticky">
 
-        {/* Dark hero background */}
-        <div className="st__bg-dark" style={{ opacity: darkBgOpacity }}>
+        {/* Building background — always visible */}
+        <div className="st__bg-building">
           <img src={building} alt="" className="st__bg-img" />
-          <div className="st__bg-overlay" />
         </div>
 
-        {/* Cream background */}
-        <div className="st__bg-cream" style={{ opacity: creamBgOpacity }} />
+        {/* Dark overlay — fades to show building */}
+        <div
+          className="st__bg-overlay"
+          style={{ opacity: overlayOpacity }}
+        />
 
-        {/* Hero text — left */}
+        {/* Subtle cream tint */}
+        <div
+          className="st__bg-cream"
+          style={{ opacity: creamBgOpacity }}
+        />
+
+        {/* Hero text */}
         <div
           className="st__hero-content"
           style={{
@@ -122,23 +135,16 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/*
-          Card: always position:absolute inside the sticky container.
-          Centered via left/top + translate(-50%,-50%).
-          During phase3 it moves to viewport center and expands to fill.
-          NO position switching = NO jump/disappear.
-        */}
+        {/* Card — always absolute, never changes position type */}
         <div
           className="st__stage"
           style={{
             width: stageW,
             height: stageH,
             borderRadius: radius,
-            position: 'absolute',
             left: centerX,
             top: centerY,
-            transform: 'translate(-50%, -50%)',
-            zIndex: phase3 > 0 ? 5 : 2,
+            zIndex: 3,
           }}
         >
           <div
@@ -157,7 +163,7 @@ export default function ScrollTransition() {
         </div>
 
         {/* Stats bar */}
-        <div className="st__stats" style={{ opacity: heroOpacity }}>
+        <div className="st__stats" style={{ opacity: statsOpacity }}>
           {STATS.map(s => (
             <div key={s.label} className="st__stat">
               <span className="st__stat-icon">{s.icon}</span>
