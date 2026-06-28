@@ -1,4 +1,4 @@
-/* ── Tall wrapper ── */
+/* ── Tall wrapper — gives scroll room ── */
 .st {
   height: 550vh;
   position: relative;
@@ -10,15 +10,14 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
+  /* Two-column: hero left, card right (card is absolute so right col is just space) */
   display: flex;
   align-items: center;
-  flex-direction: row;
-  justify-content: space-between;
   padding: 0 64px 0 96px;
   gap: 40px;
 }
 
-/* ── Dark background ── */
+/* ── Dark hero background ── */
 .st__bg-dark {
   position: absolute;
   inset: 0;
@@ -158,20 +157,14 @@
   padding-left: 2px;
 }
 
-/* ── Stage wrapper — flex item in normal flow, fixed when expanding ── */
-.st__stage-wrapper {
-  /* default styles applied inline */
-}
-
-/* ── Stage ── */
+/* ── Stage — always absolute, never switches position type ── */
 .st__stage {
   overflow: hidden;
-  /* No background — prevents ghost frame */
   background: transparent;
   box-shadow:
-    0 40px 80px rgba(0, 0, 0, 0.4),
+    0 32px 64px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.06);
-  position: relative;
+  /* position/size/left/top driven entirely by JS */
 }
 
 /* ── Flipper ── */
@@ -183,7 +176,7 @@
   position: relative;
 }
 
-/* ── Faces ── */
+/* ── Card faces ── */
 .st__face {
   position: absolute;
   inset: 0;
@@ -197,7 +190,6 @@
   background: #f5f3ee;
 }
 
-/* Back face pre-rotated -180deg to match counter-clockwise flip */
 .st__face--back {
   transform: rotateY(-180deg);
   background: #FAF8F4;
