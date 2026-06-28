@@ -1,72 +1,55 @@
-/* Tall wrapper gives scroll room */
-.st {
-  height: 400vh;
-  position: relative;
-}
+import React, { useEffect, useRef, useState } from 'react';
+import DashboardCard from './DashboardCard';
+import WhyTeamsBack from './WhyTeamsBack';
+import './ScrollTransition.css';
 
-.st__sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+export default function ScrollTransition() {
+  const wrapRef = useRef(null);
+  const [progress, setProgress] = useState(0);
 
-/* Background layers */
-.st__bg-dark {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, #0f0f0f, #1a1509);
-  z-index: 0;
-}
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!wrapRef.current) return;
+      const rect = wrapRef.current.getBoundingClientRect();
+      const windowH = window.innerHeight;
+      const scrolled = -rect.top;
+      const totalScroll = rect.height - windowH;
+      const p = Math.max(0, Math.min(1, scrolled / totalScroll));
+      setProgress(p);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-.st__bg-cream {
-  position: absolute;
-  inset: 0;
-  background: #FAF8F4;
-  z-index: 0;
-}
+  const phase1 = Math.min(1, progress / 0.5);
+  const phase2 = Math.max(0, Math.min(1, (progress - 0.5) / 0.3));
+  const phase3 = Math.max(0, (progress - 0.8) / 0.2);
 
-/* Stage holds the 3D context */
-.st__stage {
-  position: relative;
-  z-index: 1;
-  width: 760px;
-  height: 460px;
-  perspective: 1400px;
-}
+  const rotateY = phase1 * 90 + phase2 * 90;
+  const scale = 1 + phase3 * 3.5;
+  const bgProgress = phase2;
 
-/* The flipper — both faces live inside this */
-.st__flipper {
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  will-change: transform;
-  position: relative;
-}
-
-/* Shared face styles */
-.st__face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow:
-    0 40px 80px rgba(0,0,0,0.5),
-    0 0 0 1px rgba(255,255,255,0.07);
-}
-
-/* Front face — normal orientation */
-.st__face--front {
-  transform: rotateY(0deg);
-}
-
-/* Back face — pre-rotated 180deg so it shows when flipped */
-.st__face--back {
-  transform: rotateY(180deg);
-  background: #FAF8F4;
+  return (
+    <div className="st" ref={wrapRef}>
+      <div className="st__sticky">
+        <div className="st__bg-dark" style={{ opacity: 1 - bgProgress * 0.95 }} />
+        <div className="st__bg-cream" style={{ opacity: bgProgress }} />
+        <div className="st__stage">
+          <div
+            className="st__flipper"
+            style={{
+              transform: 'perspective(1400px) rotateY(' + rotateY + 'deg) scale(' + scale + ')',
+            }}
+          >
+            <div className="st__face st__face--front">
+              <DashboardCard />
+            </div>
+            <div className="st__face st__face--back">
+              <WhyTeamsBack />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
