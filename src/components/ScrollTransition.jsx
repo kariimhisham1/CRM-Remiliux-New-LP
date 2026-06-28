@@ -39,39 +39,44 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Phase 1 (0.00→0.30): front flips to 90°
-  // Phase 2 (0.30→0.55): 90° → back revealed
-  // Phase 3 (0.55→0.75): card expands to fill viewport with padding
-  // Phase 4 (0.75→1.00): pause — content animates in, building shows
-  const phase1 = Math.min(1, progress / 0.30);
-  const phase2 = Math.max(0, Math.min(1, (progress - 0.30) / 0.25));
-  const phase3 = Math.max(0, Math.min(1, (progress - 0.55) / 0.20));
-  const phase4 = Math.max(0, Math.min(1, (progress - 0.75) / 0.25));
+  // Single unified phase: flip + zoom happen together (0 → 0.65)
+  // Phase pause (0.65 → 1.00): card fully expanded, building visible, shimmer plays
+  const easeInOut = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
-  const rotateY = -(phase1 * 90 + phase2 * 90);
+  const flipZoomP = easeInOut(Math.min(1, progress / 0.65));
+  const pauseP    = Math.max(0, Math.min(1, (progress - 0.65) / 0.35));
 
+  // Rotation: 0 → -180deg as flipZoomP goes 0→1
+  const rotateY = -(flipZoomP * 180);
+
+  // Size: card starts at BASE, grows to TARGET simultaneously with flip
   const BASE_W = 700;
   const BASE_H = 430;
   const TARGET_W = vw - CARD_PADDING * 2;
   const TARGET_H = vh - NAV_H - CARD_PADDING * 2;
 
-  const stageW = BASE_W + phase3 * (TARGET_W - BASE_W);
-  const stageH = BASE_H + phase3 * (TARGET_H - BASE_H);
-  const radius = Math.round(16 - phase3 * 6); // 16 → 10
+  const stageW = BASE_W + flipZoomP * (TARGET_W - BASE_W);
+  const stageH = BASE_H + flipZoomP * (TARGET_H - BASE_H);
 
-  const rightColStart = 96 + 500 + 40;
+  // Border radius: 16 → 10 as card expands
+  const radius = Math.round(16 - flipZoomP * 6);
+
+  // Center X: interpolates from right-column center → viewport center
+  const rightColStart  = 96 + 500 + 40;
   const rightColCenter = rightColStart + (vw - rightColStart - 64) / 2;
-  const viewCenter = vw / 2;
-  const centerX = rightColCenter + phase3 * (viewCenter - rightColCenter);
+  const viewCenter     = vw / 2;
+  const centerX = rightColCenter + flipZoomP * (viewCenter - rightColCenter);
   const centerY = NAV_H + (vh - NAV_H) / 2;
 
-  const heroOpacity = Math.max(0, 1 - phase1 * 2.5);
-  const overlayOpacity = 1 - phase3 * 0.75;
-  const creamBgOpacity = phase2 * 0.15 + phase3 * 0.20;
+  // Hero text fades out in first 30% of flip
+  const heroOpacity = Math.max(0, 1 - (progress / 0.30) * 1.5);
 
-  // animProgress for WhyTeamsBack: 0 when card just revealed, 1 fully animated
-  // runs during phase3 (card expanding) + phase4 (pause)
-  const animProgress = Math.min(1, phase3 * 0.4 + phase4);
+  // Background overlay fades as card expands (tied to flipZoomP)
+  const overlayOpacity  = 1 - flipZoomP * 0.75;
+  const creamBgOpacity  = flipZoomP * 0.18;
+
+  // shimmer animProgress for WhyTeamsBack — starts mid-flip, peaks during pause
+  const shimmerProgress = Math.min(1, flipZoomP * 0.5 + pauseP);
 
   return (
     <div className="st" ref={wrapRef}>
@@ -81,8 +86,9 @@ export default function ScrollTransition() {
           <img src={building} alt="" className="st__bg-img" />
         </div>
         <div className="st__bg-overlay" style={{ opacity: overlayOpacity }} />
-        <div className="st__bg-cream" style={{ opacity: creamBgOpacity }} />
+        <div className="st__bg-cream"   style={{ opacity: creamBgOpacity }} />
 
+        {/* Hero text */}
         <div
           className="st__hero-content"
           style={{
@@ -106,6 +112,7 @@ export default function ScrollTransition() {
           </div>
         </div>
 
+        {/* Card — flips and zooms simultaneously */}
         <div
           className="st__stage"
           style={{
@@ -119,18 +126,20 @@ export default function ScrollTransition() {
         >
           <div
             className="st__flipper"
-            style={{ transform: `perspective(1400px) rotateY(${rotateY}deg)` }}
+            style={{
+              transform: `perspective(1400px) rotateY(${rotateY}deg)`,
+            }}
           >
             <div className="st__face st__face--front" style={{ borderRadius: radius }}>
               <DashboardCard />
             </div>
             <div className="st__face st__face--back" style={{ borderRadius: radius }}>
-              {/* Pass animProgress so content animates tied to scroll */}
-              <WhyTeamsBack animProgress={animProgress} />
+              <WhyTeamsBack animProgress={shimmerProgress} />
             </div>
           </div>
         </div>
 
+        {/* Stats */}
         <div className="st__stats" style={{ opacity: heroOpacity }}>
           {STATS.map(s => (
             <div key={s.label} className="st__stat">
