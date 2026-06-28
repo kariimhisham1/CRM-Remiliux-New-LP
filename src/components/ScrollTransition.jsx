@@ -1,66 +1,72 @@
-import React, { useEffect, useRef, useState } from 'react';
-import DashboardCard from './DashboardCard';
-import WhyTeamsBack from './WhyTeamsBack';
-import './ScrollTransition.css';
+/* Tall wrapper gives scroll room */
+.st {
+  height: 400vh;
+  position: relative;
+}
 
-export default function ScrollTransition() {
-  const wrapRef = useRef(null);
-  const [progress, setProgress] = useState(0);
+.st__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!wrapRef.current) return;
-      const rect = wrapRef.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const scrolled = -rect.top;
-      const totalScroll = rect.height - windowH;
-      const p = Math.max(0, Math.min(1, scrolled / totalScroll));
-      setProgress(p);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+/* Background layers */
+.st__bg-dark {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #0f0f0f, #1a1509);
+  z-index: 0;
+}
 
-  // Phase 1 (0→0.5): card flips 0→90deg (front disappears at edge)
-  // Phase 2 (0.5→0.8): card flips 90→180deg (back face revealed)
-  // Phase 3 (0.8→1.0): back face zooms to fill screen
-  const phase1 = Math.min(1, progress / 0.5);
-  const phase2 = Math.max(0, Math.min(1, (progress - 0.5) / 0.3));
-  const phase3 = Math.max(0, (progress - 0.8) / 0.2);
+.st__bg-cream {
+  position: absolute;
+  inset: 0;
+  background: #FAF8F4;
+  z-index: 0;
+}
 
-  const rotateY = phase1 * 90 + phase2 * 90; // 0 → 90 → 180
-  const scale = 1 + phase3 * 3.5;
-  const bgProgress = phase2;
+/* Stage holds the 3D context */
+.st__stage {
+  position: relative;
+  z-index: 1;
+  width: 760px;
+  height: 460px;
+  perspective: 1400px;
+}
 
-  return (
-    <div className="st" ref={wrapRef}>
-      <div className="st__sticky">
+/* The flipper — both faces live inside this */
+.st__flipper {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+  position: relative;
+}
 
-        {/* Background layers */}
-        <div className="st__bg-dark" style={{ opacity: 1 - bgProgress * 0.95 }} />
-        <div className="st__bg-cream" style={{ opacity: bgProgress }} />
+/* Shared face styles */
+.st__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.07);
+}
 
-        {/* The 3D flip stage */}
-        <div className="st__stage">
-          <div
-            className="st__flipper"
-            style={{
-              transform: `perspective(1400px) rotateY(${rotateY}deg) scale(${scale})`,
-            }}
-          >
-            {/* FRONT FACE — Dashboard */}
-            <div className="st__face st__face--front">
-              <DashboardCard />
-            </div>
+/* Front face — normal orientation */
+.st__face--front {
+  transform: rotateY(0deg);
+}
 
-            {/* BACK FACE — Why Teams section */}
-            <div className="st__face st__face--back">
-              <WhyTeamsBack />
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
+/* Back face — pre-rotated 180deg so it shows when flipped */
+.st__face--back {
+  transform: rotateY(180deg);
+  background: #FAF8F4;
 }
