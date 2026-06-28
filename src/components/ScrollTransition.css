@@ -1,4 +1,4 @@
-/* ── Tall wrapper — 700vh gives room for all phases + pause ── */
+/* ── Tall wrapper ── */
 .st {
   height: 700vh;
   position: relative;
@@ -16,7 +16,7 @@
   gap: 40px;
 }
 
-/* ── Building background — always present ── */
+/* ── Building background ── */
 .st__bg-building {
   position: absolute;
   inset: 0;
@@ -32,7 +32,7 @@
   filter: brightness(0.6) saturate(0.85);
 }
 
-/* ── Dark overlay — fades out to reveal building ── */
+/* ── Dark overlay ── */
 .st__bg-overlay {
   position: absolute;
   inset: 0;
@@ -159,15 +159,14 @@
   padding-left: 2px;
 }
 
-/* ── Stage — absolute, centered via JS left/top + translate ── */
+/* ── Stage wrapper — holds the 3D perspective, NO overflow:hidden, NO background ── */
 .st__stage {
   position: absolute;
   transform: translate(-50%, -50%);
-  overflow: hidden;
+  /* CRITICAL: overflow must be visible so 3D flip isn't clipped */
+  overflow: visible;
   background: transparent;
-  box-shadow:
-    0 32px 80px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+  /* NO box-shadow here — it causes the ghost frame */
 }
 
 /* ── Flipper ── */
@@ -179,13 +178,18 @@
   position: relative;
 }
 
-/* ── Faces ── */
+/* ── Faces — overflow hidden only on the faces themselves, not the stage ── */
 .st__face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* overflow:hidden only on faces so content clips correctly */
   overflow: hidden;
+  /* Shadow on faces, not on stage — disappears when face is edge-on */
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .st__face--front {
