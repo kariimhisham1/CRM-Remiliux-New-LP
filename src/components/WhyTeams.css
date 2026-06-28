@@ -1,6 +1,7 @@
 /* ── Section ── */
 .why {
   padding: 20px 28px;
+  padding-top: 84px; /* navbar height (64px) + breathing room */
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -32,7 +33,7 @@
   transform: translateY(0);
 }
 
-/* ── Header — top, stacked above grid ── */
+/* ── Header ── */
 .why__header {
   max-width: 640px;
   margin-bottom: 18px;
