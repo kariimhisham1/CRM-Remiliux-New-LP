@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import DashboardCard from './DashboardCard';
-import building from '../assets/building.png';
+import building from '../assets/Building.png';
 import './Hero.css';
 
 const STATS = [
