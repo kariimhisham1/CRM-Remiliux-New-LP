@@ -1,6 +1,6 @@
 /* ── Section ── */
 .why {
-  background: #e8ddd0;
+  background: #c4aa8f;
   padding: 120px 72px;
   min-height: 100vh;
 }
@@ -41,7 +41,7 @@
   font-family: var(--font-body, sans-serif);
   font-size: 14px;
   line-height: 1.7;
-  color: #6b5c4a;
+  color: #3d2e1e;
   max-width: 560px;
 }
 
@@ -52,16 +52,15 @@
   gap: 12px;
 }
 
-/* ── Dark card ── */
+/* ── Dark card — warm dark brown, not pure black ── */
 .why__card {
-  background: #1a1509;
+  background: #1e1810;
   border-radius: 16px;
   padding: 28px 26px 32px;
   display: flex;
   flex-direction: column;
   gap: 0;
   border: 1px solid rgba(201, 168, 76, 0.12);
-  /* Entry animation */
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -73,7 +72,7 @@
 }
 
 .why__card:hover {
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
   border-color: rgba(201, 168, 76, 0.30);
   transform: translateY(-3px);
 }
