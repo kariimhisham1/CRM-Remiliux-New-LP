@@ -1,6 +1,6 @@
-/* ── Tall wrapper — gives scroll room ── */
+/* ── Tall wrapper — 700vh gives room for all phases + pause ── */
 .st {
-  height: 550vh;
+  height: 700vh;
   position: relative;
 }
 
@@ -10,15 +10,14 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
-  /* Two-column: hero left, card right (card is absolute so right col is just space) */
   display: flex;
   align-items: center;
   padding: 0 64px 0 96px;
   gap: 40px;
 }
 
-/* ── Dark hero background ── */
-.st__bg-dark {
+/* ── Building background — always present ── */
+.st__bg-building {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -30,33 +29,36 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: brightness(0.5) saturate(0.8);
+  filter: brightness(0.6) saturate(0.85);
 }
 
+/* ── Dark overlay — fades out to reveal building ── */
 .st__bg-overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background: linear-gradient(
     135deg,
-    rgba(10, 8, 4, 0.88) 0%,
-    rgba(15, 12, 5, 0.6) 50%,
-    rgba(10, 8, 4, 0.4) 100%
+    rgba(10, 8, 4, 0.92) 0%,
+    rgba(15, 12, 5, 0.75) 50%,
+    rgba(10, 8, 4, 0.65) 100%
   );
 }
 
-/* ── Cream background ── */
+/* ── Cream tint ── */
 .st__bg-cream {
   position: absolute;
   inset: 0;
-  background: #FAF8F4;
-  z-index: 0;
+  background: #e8ddd0;
+  z-index: 1;
   pointer-events: none;
 }
 
 /* ── Hero text ── */
 .st__hero-content {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   max-width: 500px;
   flex-shrink: 0;
   padding-bottom: 80px;
@@ -157,14 +159,15 @@
   padding-left: 2px;
 }
 
-/* ── Stage — always absolute, never switches position type ── */
+/* ── Stage — absolute, centered via JS left/top + translate ── */
 .st__stage {
+  position: absolute;
+  transform: translate(-50%, -50%);
   overflow: hidden;
   background: transparent;
   box-shadow:
-    0 32px 64px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
-  /* position/size/left/top driven entirely by JS */
+    0 32px 80px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 /* ── Flipper ── */
@@ -176,7 +179,7 @@
   position: relative;
 }
 
-/* ── Card faces ── */
+/* ── Faces ── */
 .st__face {
   position: absolute;
   inset: 0;
@@ -201,7 +204,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 3;
+  z-index: 4;
   display: flex;
   justify-content: space-around;
   align-items: center;
