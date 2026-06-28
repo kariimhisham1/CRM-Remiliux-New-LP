@@ -23,7 +23,6 @@ export default function WhyTeamsBack() {
           They have an execution problem.
         </p>
       </div>
-
       <div className="wtb__cards">
         {PAIN_POINTS.map((point, i) => (
           <div key={i} className="wtb__card">
