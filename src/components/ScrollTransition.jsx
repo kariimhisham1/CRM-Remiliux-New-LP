@@ -37,35 +37,31 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Phase 1 (0.00 → 0.35): card flips front → 90deg
-  // Phase 2 (0.35 → 0.60): card flips 90deg → back revealed
-  // Phase 3 (0.60 → 1.00): back face stage expands to fill full viewport
-
+  // Phase 1 (0.00 → 0.35): flip front → 90deg (front disappears)
+  // Phase 2 (0.35 → 0.60): flip 90deg → 180deg (back revealed)
+  // Phase 3 (0.60 → 1.00): stage expands to fill full viewport
   const phase1 = Math.min(1, progress / 0.35);
   const phase2 = Math.max(0, Math.min(1, (progress - 0.35) / 0.25));
   const phase3 = Math.max(0, Math.min(1, (progress - 0.60) / 0.40));
 
-  const rotateY = phase1 * 90 + phase2 * 90;
+  // NEGATIVE rotation = flips the other direction (left/counter-clockwise)
+  const rotateY = -(phase1 * 90 + phase2 * 90);
 
-  // Card is always fully visible from page load
   const BASE_W = 680;
   const BASE_H = 420;
 
-  // Phase 3: stage grows from card size to full viewport
+  // Phase 3: stage fills viewport exactly
   const stageW = BASE_W + phase3 * (vw - BASE_W);
   const stageH = BASE_H + phase3 * (vh - BASE_H);
+
+  // Stage moves from right-column position to absolute 0,0 fill
+  // At phase3=0: centered in right column. At phase3=1: covers full screen
+  const stageTop = phase3 * -(/* offset to top */ 50); // handled via CSS transform
   const radius = Math.round(16 * (1 - phase3));
 
-  // Hero text fades as flip starts
   const heroOpacity = Math.max(0, 1 - phase1 * 2);
-
-  // Dark bg stays until back face fully expands
   const darkBgOpacity = 1 - phase3;
-
-  // Cream bg: hint during phase2, full during phase3
   const creamBgOpacity = phase2 * 0.3 + phase3 * 0.7;
-
-  // Scroll hint fades after slight scroll
   const scrollHintOpacity = Math.max(0, 1 - progress * 8);
 
   return (
@@ -108,13 +104,23 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/* Card — right side, always visible, grows in phase3 */}
+        {/* Card stage — starts right column, expands to full screen */}
         <div
           className="st__stage"
           style={{
             width: stageW,
             height: stageH,
             borderRadius: radius,
+            // When phase3 > 0, break out of flex layout and cover the viewport
+            ...(phase3 > 0 ? {
+              position: 'fixed',
+              top: `${(1 - phase3) * 50}%`,
+              left: `${(1 - phase3) * 50}%`,
+              transform: `translate(-${(1 - phase3) * 50}%, -${(1 - phase3) * 50}%)`,
+              zIndex: 10,
+            } : {
+              position: 'relative',
+            }),
           }}
         >
           <div
@@ -123,9 +129,11 @@ export default function ScrollTransition() {
               transform: `perspective(1400px) rotateY(${rotateY}deg)`,
             }}
           >
+            {/* Front face — back is now rotateY(+180) since we flip negative */}
             <div className="st__face st__face--front" style={{ borderRadius: radius }}>
               <DashboardCard />
             </div>
+            {/* Back face — pre-rotated -180deg to match negative flip direction */}
             <div className="st__face st__face--back" style={{ borderRadius: radius }}>
               <WhyTeamsBack />
             </div>
