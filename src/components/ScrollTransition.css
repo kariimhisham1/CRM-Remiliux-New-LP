@@ -1,4 +1,4 @@
-/* ── Tall wrapper gives scroll room ── */
+/* ── Tall wrapper ── */
 .st {
   height: 550vh;
   position: relative;
@@ -158,15 +158,20 @@
   padding-left: 2px;
 }
 
+/* ── Stage wrapper — flex item in normal flow, fixed when expanding ── */
+.st__stage-wrapper {
+  /* default styles applied inline */
+}
+
 /* ── Stage ── */
 .st__stage {
-  position: relative;
-  z-index: 2;
-  flex-shrink: 0;
   overflow: hidden;
+  /* No background — prevents ghost frame */
+  background: transparent;
   box-shadow:
-    0 40px 80px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(255, 255, 255, 0.07);
+    0 40px 80px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  position: relative;
 }
 
 /* ── Flipper ── */
@@ -192,44 +197,10 @@
   background: #f5f3ee;
 }
 
-/* Back face uses -180deg to match the negative flip direction */
+/* Back face pre-rotated -180deg to match counter-clockwise flip */
 .st__face--back {
   transform: rotateY(-180deg);
   background: #FAF8F4;
-}
-
-/* ── Scroll hint ── */
-.st__scroll-hint {
-  position: absolute;
-  right: 64px;
-  bottom: 120px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  animation: st-bob 2s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.st__scroll-label {
-  font-family: var(--font-body, sans-serif);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold, #C9A84C);
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-}
-
-.st__scroll-arrow {
-  font-size: 18px;
-  color: var(--gold, #C9A84C);
-}
-
-@keyframes st-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(8px); }
 }
 
 /* ── Stats bar ── */
