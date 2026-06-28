@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import building from '../assets/Building.png';
 import DashboardCard from './DashboardCard';
 import WhyTeamsBack from './WhyTeamsBack';
@@ -37,62 +37,51 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Phase 1 (0.00 → 0.25): card fades in already in position (no slide, just appear)
-  // Phase 2 (0.25 → 0.55): card flips front → 90deg
-  // Phase 3 (0.55 → 0.75): card flips 90deg → back revealed
-  // Phase 4 (0.75 → 1.00): back face stage expands to fill full viewport
+  // Phase 1 (0.00 → 0.35): card flips front → 90deg
+  // Phase 2 (0.35 → 0.60): card flips 90deg → back revealed
+  // Phase 3 (0.60 → 1.00): back face stage expands to fill full viewport
 
-  const phase1 = Math.min(1, progress / 0.25);
-  const phase2 = Math.max(0, Math.min(1, (progress - 0.25) / 0.30));
-  const phase3 = Math.max(0, Math.min(1, (progress - 0.55) / 0.20));
-  const phase4 = Math.max(0, Math.min(1, (progress - 0.75) / 0.25));
+  const phase1 = Math.min(1, progress / 0.35);
+  const phase2 = Math.max(0, Math.min(1, (progress - 0.35) / 0.25));
+  const phase3 = Math.max(0, Math.min(1, (progress - 0.60) / 0.40));
 
-  const rotateY = phase2 * 90 + phase3 * 90;
+  const rotateY = phase1 * 90 + phase2 * 90;
 
-  // Card dimensions — matches the screenshot proportions
+  // Card is always fully visible from page load
   const BASE_W = 680;
   const BASE_H = 420;
 
-  // Phase 4: stage grows from card size to full viewport
-  const stageW = BASE_W + phase4 * (vw - BASE_W);
-  const stageH = BASE_H + phase4 * (vh - BASE_H);
-
-  // Border radius goes to 0 as card fills screen
-  const radius = Math.round(16 * (1 - phase4));
+  // Phase 3: stage grows from card size to full viewport
+  const stageW = BASE_W + phase3 * (vw - BASE_W);
+  const stageH = BASE_H + phase3 * (vh - BASE_H);
+  const radius = Math.round(16 * (1 - phase3));
 
   // Hero text fades as flip starts
-  const heroOpacity = Math.max(0, 1 - phase2 * 2.5);
+  const heroOpacity = Math.max(0, 1 - phase1 * 2);
 
-  // Dark bg stays until back face is fully expanded
-  // Starts fading only when phase4 begins
-  const darkBgOpacity = 1 - phase4;
+  // Dark bg stays until back face fully expands
+  const darkBgOpacity = 1 - phase3;
 
-  // Cream bg appears as back face reveals (phase3) and fills during phase4
-  const creamBgOpacity = phase3 * 0.3 + phase4 * 0.7;
+  // Cream bg: hint during phase2, full during phase3
+  const creamBgOpacity = phase2 * 0.3 + phase3 * 0.7;
 
-  // Card opacity fades in during phase1
-  const cardOpacity = phase1;
+  // Scroll hint fades after slight scroll
+  const scrollHintOpacity = Math.max(0, 1 - progress * 8);
 
   return (
     <div className="st" ref={wrapRef}>
       <div className="st__sticky">
 
-        {/* Dark hero background — stays until phase4 */}
-        <div
-          className="st__bg-dark"
-          style={{ opacity: darkBgOpacity }}
-        >
+        {/* Dark hero background */}
+        <div className="st__bg-dark" style={{ opacity: darkBgOpacity }}>
           <img src={building} alt="" className="st__bg-img" />
           <div className="st__bg-overlay" />
         </div>
 
-        {/* Cream background — comes in as back face fills */}
-        <div
-          className="st__bg-cream"
-          style={{ opacity: creamBgOpacity }}
-        />
+        {/* Cream background */}
+        <div className="st__bg-cream" style={{ opacity: creamBgOpacity }} />
 
-        {/* Hero text — left side */}
+        {/* Hero text — left */}
         <div
           className="st__hero-content"
           style={{
@@ -119,7 +108,7 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/* Card stage — right side, expands to fill in phase4 */}
+        {/* Card — right side, always visible, grows in phase3 */}
         <div
           className="st__stage"
           style={{
@@ -132,32 +121,19 @@ export default function ScrollTransition() {
             className="st__flipper"
             style={{
               transform: `perspective(1400px) rotateY(${rotateY}deg)`,
-              opacity: cardOpacity,
             }}
           >
-            {/* Front — Dashboard */}
-            <div
-              className="st__face st__face--front"
-              style={{ borderRadius: radius }}
-            >
+            <div className="st__face st__face--front" style={{ borderRadius: radius }}>
               <DashboardCard />
             </div>
-
-            {/* Back — Why Teams */}
-            <div
-              className="st__face st__face--back"
-              style={{ borderRadius: radius }}
-            >
+            <div className="st__face st__face--back" style={{ borderRadius: radius }}>
               <WhyTeamsBack />
             </div>
           </div>
         </div>
 
-        {/* Scroll hint — top of page only */}
-        <div
-          className="st__scroll-hint"
-          style={{ opacity: Math.max(0, 1 - phase1 * 4) }}
-        >
+        {/* Scroll hint */}
+        <div className="st__scroll-hint" style={{ opacity: scrollHintOpacity }}>
           <div className="st__scroll-label">Scroll to explore</div>
           <div className="st__scroll-arrow">↓</div>
         </div>
