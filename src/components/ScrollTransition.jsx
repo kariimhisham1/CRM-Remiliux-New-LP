@@ -37,32 +37,36 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Phase 1 (0.00 → 0.35): flip front → 90deg (front disappears)
-  // Phase 2 (0.35 → 0.60): flip 90deg → 180deg (back revealed)
+  // Phase 1 (0.00 → 0.35): flip front → 90deg
+  // Phase 2 (0.35 → 0.60): flip 90deg → back revealed
   // Phase 3 (0.60 → 1.00): stage expands to fill full viewport
   const phase1 = Math.min(1, progress / 0.35);
   const phase2 = Math.max(0, Math.min(1, (progress - 0.35) / 0.25));
   const phase3 = Math.max(0, Math.min(1, (progress - 0.60) / 0.40));
 
-  // NEGATIVE rotation = flips the other direction (left/counter-clockwise)
+  // Negative = counter-clockwise flip
   const rotateY = -(phase1 * 90 + phase2 * 90);
 
-  const BASE_W = 680;
-  const BASE_H = 420;
+  const BASE_W = 700;
+  const BASE_H = 430;
 
-  // Phase 3: stage fills viewport exactly
-  const stageW = BASE_W + phase3 * (vw - BASE_W);
-  const stageH = BASE_H + phase3 * (vh - BASE_H);
-
-  // Stage moves from right-column position to absolute 0,0 fill
-  // At phase3=0: centered in right column. At phase3=1: covers full screen
-  const stageTop = phase3 * -(/* offset to top */ 50); // handled via CSS transform
+  // During phase3 the stage goes fixed and expands to cover viewport
+  const isExpanding = phase3 > 0;
+  const stageW = isExpanding ? BASE_W + phase3 * (vw - BASE_W) : BASE_W;
+  const stageH = isExpanding ? BASE_H + phase3 * (vh - BASE_H) : BASE_H;
   const radius = Math.round(16 * (1 - phase3));
 
+  // When expanding: stage moves from center of right-column to full screen
+  // We use fixed positioning anchored to viewport center, then shift top/left to 0
+  const expandTop = phase3 * (-50); // percent offset — handled via transform below
+  
   const heroOpacity = Math.max(0, 1 - phase1 * 2);
   const darkBgOpacity = 1 - phase3;
   const creamBgOpacity = phase2 * 0.3 + phase3 * 0.7;
-  const scrollHintOpacity = Math.max(0, 1 - progress * 8);
+
+  // Ghost frame fix: hide the flipper's perspective container bg during mid-flip
+  // by making the stage itself invisible at exactly 90deg (phase1=1, phase2=0)
+  const atEdge = phase1 === 1 && phase2 === 0;
 
   return (
     <div className="st" ref={wrapRef}>
@@ -104,46 +108,53 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/* Card stage — starts right column, expands to full screen */}
+        {/* Card — right column normally, fixed+fullscreen during phase3 */}
         <div
-          className="st__stage"
-          style={{
-            width: stageW,
-            height: stageH,
-            borderRadius: radius,
-            // When phase3 > 0, break out of flex layout and cover the viewport
-            ...(phase3 > 0 ? {
-              position: 'fixed',
-              top: `${(1 - phase3) * 50}%`,
-              left: `${(1 - phase3) * 50}%`,
-              transform: `translate(-${(1 - phase3) * 50}%, -${(1 - phase3) * 50}%)`,
-              zIndex: 10,
-            } : {
-              position: 'relative',
-            }),
+          className="st__stage-wrapper"
+          style={isExpanding ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          } : {
+            position: 'relative',
+            zIndex: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
           }}
         >
           <div
-            className="st__flipper"
+            className="st__stage"
             style={{
-              transform: `perspective(1400px) rotateY(${rotateY}deg)`,
+              width: stageW,
+              height: stageH,
+              borderRadius: radius,
+              // Ghost fix: no background on the stage itself
+              background: 'transparent',
             }}
           >
-            {/* Front face — back is now rotateY(+180) since we flip negative */}
-            <div className="st__face st__face--front" style={{ borderRadius: radius }}>
-              <DashboardCard />
-            </div>
-            {/* Back face — pre-rotated -180deg to match negative flip direction */}
-            <div className="st__face st__face--back" style={{ borderRadius: radius }}>
-              <WhyTeamsBack />
+            <div
+              className="st__flipper"
+              style={{
+                transform: `perspective(1400px) rotateY(${rotateY}deg)`,
+              }}
+            >
+              <div className="st__face st__face--front" style={{ borderRadius: radius }}>
+                <DashboardCard />
+              </div>
+              <div className="st__face st__face--back" style={{ borderRadius: radius }}>
+                <WhyTeamsBack />
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Scroll hint */}
-        <div className="st__scroll-hint" style={{ opacity: scrollHintOpacity }}>
-          <div className="st__scroll-label">Scroll to explore</div>
-          <div className="st__scroll-arrow">↓</div>
         </div>
 
         {/* Stats bar */}
