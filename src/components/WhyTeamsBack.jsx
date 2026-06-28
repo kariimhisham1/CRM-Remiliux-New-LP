@@ -9,22 +9,17 @@ const PAIN_POINTS = [
 ];
 
 export default function WhyTeamsBack({ animProgress = 0 }) {
-  // Shimmer sweep — decorative only
   const shimmerP = Math.min(1, animProgress / 0.55);
   const shimmerX = -60 + shimmerP * 160;
   const shimmerOpacity = shimmerP >= 1 ? 0 : Math.min(1, shimmerP * 4);
 
-  // Easing functions
   const easeOut3 = t => 1 - Math.pow(1 - t, 3);
   const easeOut4 = t => 1 - Math.pow(1 - t, 4);
 
-  // Header fades in early and stays
   const headerP = easeOut3(Math.min(1, animProgress / 0.30));
 
-  // Cards start appearing at animProgress = 0.45 (mid flip+zoom)
-  // Each card staggers 0.12 apart, duration 0.30 each
-  // Order: card 0 (top-left), 1 (top-mid), 2 (top-right), 3 (bottom-left)
-  const CARD_START = 0.45;
+  // Moved from 0.45 → 0.22 so cards start appearing much earlier in the flip
+  const CARD_START = 0.22;
   const CARD_STAGGER = 0.12;
   const CARD_DUR = 0.30;
 
@@ -36,7 +31,6 @@ export default function WhyTeamsBack({ animProgress = 0 }) {
 
   return (
     <div className="wtb">
-      {/* Gold shimmer */}
       <div
         className="wtb__shimmer"
         style={{
@@ -46,7 +40,6 @@ export default function WhyTeamsBack({ animProgress = 0 }) {
       />
 
       <div className="wtb__content">
-        {/* Header — always readable, gentle fade up */}
         <div
           className="wtb__header"
           style={{
@@ -66,7 +59,6 @@ export default function WhyTeamsBack({ animProgress = 0 }) {
           </p>
         </div>
 
-        {/* Cards — appear one by one starting mid flip+zoom */}
         <div className="wtb__cards">
           {PAIN_POINTS.map((point, i) => {
             const cp = cardP[i];
@@ -77,11 +69,9 @@ export default function WhyTeamsBack({ animProgress = 0 }) {
                 style={{
                   opacity: cp,
                   transform: `translateY(${(1 - cp) * 48}px)`,
-                  // Slight scale for depth feel
                   scale: `${0.92 + cp * 0.08}`,
                 }}
               >
-                {/* Icon scales in with a tiny delay after card */}
                 <div
                   className="wtb__card-icon"
                   style={{
