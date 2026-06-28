@@ -2,13 +2,40 @@
   width: 100%;
   height: 100%;
   background: #FAF8F4;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Gold shimmer band — absolutely positioned, full height, narrow width */
+.wtb__shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  /* width of the shimmer band itself */
+  background-size: 60% 100%;
+  background-repeat: no-repeat;
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+
+/* Content wrapper — gets clip-path applied for reveal */
+.wtb__content {
+  width: 100%;
+  height: 100%;
   padding: 52px 60px 48px;
   display: flex;
   flex-direction: column;
   gap: 0;
-  font-family: var(--font-body);
-  overflow: hidden;
   box-sizing: border-box;
+  will-change: clip-path;
 }
 
 .wtb__header {
@@ -22,23 +49,19 @@
   text-transform: uppercase;
   color: var(--gold, #C9A84C);
   margin-bottom: 20px;
-  /* animation driven by inline style */
+  will-change: transform, opacity;
 }
 
 .wtb__headline {
   font-family: var(--font-display);
-  /* Fixed px — not viewport-relative so it doesn't balloon during flip */
   font-size: 44px;
   font-weight: 800;
   color: #1a1509;
   line-height: 1.1;
   letter-spacing: -0.02em;
   margin-bottom: 20px;
-  /* overflow hidden clips words sliding up */
-  overflow: hidden;
 }
 
-/* Each word slides up independently */
 .wtb__word {
   will-change: transform, opacity;
 }
