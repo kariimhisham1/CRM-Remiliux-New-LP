@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import DashboardCard from './DashboardCard';
 import building from '../assets/Building.png';
 import './Hero.css';
 
@@ -11,33 +10,8 @@ const STATS = [
 ];
 
 export default function Hero() {
-  const cardRef = useRef(null);
-  const sectionRef = useRef(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      // Progress: 0 when section top hits bottom of viewport, 1 when it's scrolled out
-      const total = windowH + rect.height * 0.5;
-      const scrolled = windowH - rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / total));
-      setScrollProgress(progress);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Interpolate card transform based on scroll
-  const rotateX = 18 - scrollProgress * 18;       // 18deg → 0deg
-  const scale = 0.82 + scrollProgress * 0.18;      // 0.82 → 1.0
-  const translateY = scrollProgress * -20;          // slight upward lift
-
   return (
-    <section className="hero" ref={sectionRef}>
+    <section className="hero">
       {/* Background */}
       <div className="hero__bg">
         <img src={building} alt="Remiliux building" className="hero__bg-img" />
@@ -69,15 +43,11 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Dashboard card with scroll-driven 3D tilt */}
-        <div className="hero__card-wrap" ref={cardRef}>
-          <div
-            className="hero__card-3d"
-            style={{
-              transform: `perspective(1200px) rotateX(${rotateX}deg) scale(${scale}) translateY(${translateY}px)`,
-            }}
-          >
-            <DashboardCard />
+        {/* Right side hint — scroll indicator */}
+        <div className="hero__right">
+          <div className="hero__scroll-hint">
+            <div className="hero__scroll-label">Scroll to explore</div>
+            <div className="hero__scroll-arrow">↓</div>
           </div>
         </div>
       </div>
