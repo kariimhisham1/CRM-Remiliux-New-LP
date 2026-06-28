@@ -1,170 +1,245 @@
-/* ── Tall scroll wrapper ── */
-.wt {
-  height: 400vh;
-  position: relative;
-}
+/* ════════════════════════════════════════════════════════════════════════════
+   PHASES 2–5 — Automation Engine additions to WhyTeams.css
+   Paste this block at the bottom of your existing WhyTeams.css
+   ════════════════════════════════════════════════════════════════════════════ */
 
-/* ── Sticky viewport ── */
-.wt__sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 28px 20px;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-/* ── Frosted frame ── */
-.wt__frame {
-  width: 100%;
-  max-width: 1100px;
-  background: rgba(250, 248, 244, 0.55);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow:
-    0 2px 40px rgba(120, 90, 50, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 40px 44px 44px;
-  position: relative;
-  opacity: 0;
-  transform: translateY(60px);
-  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.wt__frame--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ── Headers — overlaid, fade between them ── */
-.wt__header {
-  top: 40px;
-  left: 44px;
-  right: 44px;
-  transition: opacity 0.3s ease;
-}
-
-.wt__header-spacer {
-  height: 130px; /* reserves space for header above cards */
-  margin-bottom: 24px;
-}
-
-.wt__eyebrow {
-  font-family: var(--font-body, sans-serif);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gold, #C9A84C);
-  margin-bottom: 10px;
-}
-
-.wt__headline {
-  font-family: var(--font-display, serif);
-  font-size: clamp(24px, 2.8vw, 36px);
-  font-weight: 800;
-  color: #1a1509;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  margin-bottom: 10px;
-}
-
-.wt__body {
-  font-family: var(--font-body, sans-serif);
-  font-size: 13px;
-  line-height: 1.6;
-  color: #6b5c4a;
-  max-width: 480px;
-}
-
-/* ── 3×2 card grid ── */
-.wt__cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 10px;
-}
-
-/* ── Card scene — sets 3D stage ── */
-.wt__card-scene {
-  height: 160px;
-  perspective: 900px;
-}
-
-/* ── Flipper ── */
-.wt__card-flipper {
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  will-change: transform;
-  position: relative;
-}
-
-/* ── Both faces ── */
-.wt__card {
+/* ── Engine wrapper — centred column, sits on top of sticky ── */
+.wt__engine-wrap {
   position: absolute;
   inset: 0;
-  background: #1e1810;
-  border-radius: 12px;
-  padding: 20px 20px 22px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 28px 32px;
+  box-sizing: border-box;
+  gap: 20px;
+  will-change: opacity;
+}
+
+/* ── Section header above dark card ── */
+.wt__engine-header {
+  width: 100%;
+  max-width: 1100px;
+}
+.wt__engine-headline {
+  font-family: var(--font-display, serif);
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 800;
+  color: #faf4e8;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 6px 0 10px;
+}
+.wt__engine-body {
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(250, 244, 232, 0.55);
+  max-width: 520px;
+  margin: 0;
+}
+
+/* ── Dark card container ── */
+.wt__dark-card {
+  width: 100%;
+  max-width: 1100px;
+  background: #161310;
+  border-radius: 18px;
   border: 1px solid rgba(201, 168, 76, 0.14);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: row;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 0;
+  flex-shrink: 1;
 }
 
-.wt__card:hover {
-  border-color: rgba(201, 168, 76, 0.32);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+/* ── Left: 4-step timeline ── */
+.wt__timeline {
+  flex: 1;
+  padding: 32px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  will-change: opacity, transform;
 }
-
-.wt__card--front {
-  transform: rotateY(0deg);
+.wt__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  position: relative;
+  will-change: opacity, transform;
 }
-
-.wt__card--back {
-  transform: rotateY(180deg);
-  /* Slightly different dark tone for back */
-  background: #231c0f;
+.wt__step:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-
-/* ── Card contents ── */
-.wt__card-icon {
-  font-size: 20px;
-  margin-bottom: 12px;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: rgba(201, 168, 76, 0.1);
-  border: 1px solid rgba(201, 168, 76, 0.18);
+.wt__step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 52px;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(201,168,76,0.25), transparent);
+}
+.wt__step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1.5px solid rgba(201, 168, 76, 0.30);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.wt__step-body { flex: 1; }
+.wt__step-label {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a84c;
+  margin: 0 0 3px;
+}
+.wt__step-title {
+  font-family: var(--font-display, serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #f0e4cc;
+  margin: 0 0 4px;
+}
+.wt__step-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(240, 228, 204, 0.38);
+  margin: 0;
 }
 
-.wt__card-title {
+/* ── Vertical divider between panels ── */
+.wt__card-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+  margin: 24px 0;
+}
+
+/* ── Right: Workflow Intelligence ── */
+.wt__wi {
+  width: 42%;
+  flex-shrink: 0;
+  padding: 32px 30px;
+  background: #1c1710;
+  display: flex;
+  flex-direction: column;
+  will-change: opacity, transform;
+}
+.wt__wi-eyebrow {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c9a84c;
+  margin: 0 0 12px;
+}
+.wt__wi-headline {
+  font-family: var(--font-display, serif);
+  font-size: clamp(18px, 1.9vw, 26px);
+  font-weight: 700;
+  color: #f0e4cc;
+  line-height: 1.18;
+  margin: 0 0 12px;
+}
+.wt__wi-body {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(240, 228, 204, 0.38);
+  margin: 0 0 24px;
+}
+.wt__stats {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+}
+.wt__stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  will-change: opacity, transform;
+}
+.wt__stat-label {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  color: rgba(240, 228, 204, 0.45);
+}
+.wt__stat-value {
+  font-family: var(--font-display, serif);
+  font-size: 19px;
+  font-weight: 700;
+  color: #c9a84c;
+}
+
+/* ── Integration pills ── */
+.wt__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  max-width: 1100px;
+}
+.wt__pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1c1710;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  border-radius: 10px;
+  padding: 11px 16px;
+  flex: 1;
+  min-width: 130px;
+  will-change: opacity, transform;
+}
+.wt__pill-icon {
+  font-size: 15px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.wt__pill-label {
   font-family: var(--font-body, sans-serif);
   font-size: 13px;
   font-weight: 600;
-  color: #f5ead8;
-  margin-bottom: 6px;
-  line-height: 1.2;
+  color: #c8baa4;
+  flex: 1;
+}
+.wt__pill-badge {
+  font-family: var(--font-body, sans-serif);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #c9a84c;
+  border: 1px solid rgba(201, 168, 76, 0.30);
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
 }
 
-.wt__card-desc {
-  font-family: var(--font-body, sans-serif);
-  font-size: 11px;
-  line-height: 1.55;
-  color: rgba(245, 234, 216, 0.40);
-  margin: 0;
-}
+/* ── IMPORTANT: update .wt height to 700vh (was 400vh) ──
+   This gives enough scroll room for all 5 phases.
+   Find `.wt { height: 400vh; ... }` in your existing WhyTeams.css
+   and change it to:
+
+   .wt {
+     height: 700vh;
+     position: relative;
+   }
+── */
