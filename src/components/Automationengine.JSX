@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './AutomationEngine.css';
+import './AutomationEngine.CSS';
 
 const STEPS = [
   { icon: '🔔', step: 'Step 1', title: 'Lead Arrives', desc: 'Via web form, ad, import, referral, or direct response captured instantly.' },
