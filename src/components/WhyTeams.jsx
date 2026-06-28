@@ -1,66 +1,83 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './WhyTeams.css';
 
-const PAIN_POINTS = [
-  {
-    icon: '💼',
-    text: 'Leads are forgotten the moment acquisition volume increases.',
-  },
-  {
-    icon: '⏱',
-    text: 'Follow-up cadence stops long before the prospect is ready.',
-  },
-  {
-    icon: '👤',
-    text: 'Managers cannot see who is driving pipeline and who is drifting.',
-  },
-  {
-    icon: '💬',
-    text: 'Calls, texts, calendars, and deals live in disconnected systems.',
-  },
+const FEATURES = [
+  { icon: '📋', title: 'Lead Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '🔔', title: 'Smart Follow-Up Automation', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '💬', title: 'SMS Campaigns', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '✉️', title: 'Email Campaigns', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '📞', title: 'Voicemail Drops', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '⚙️', title: 'Pipeline Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '📱', title: 'Dialpad Integration', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '📅', title: 'Calendar Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '✅', title: 'Task Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '👥', title: 'Team Accountability', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '📊', title: 'Reporting & Analytics', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
+  { icon: '📈', title: 'Deal Lifecycle Tracking', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
 ];
 
 export default function WhyTeams() {
   const sectionRef = useRef(null);
-  const [visible, setVisible] = useState(false);
+  const [visibleCards, setVisibleCards] = useState(new Set());
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold: 0.15 }
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const idx = parseInt(entry.target.dataset.idx);
+            // Stagger each card in
+            setTimeout(() => {
+              setVisibleCards(prev => new Set([...prev, idx]));
+            }, idx * 60);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     );
-    if (sectionRef.current) observer.observe(sectionRef.current);
+
+    const cards = sectionRef.current?.querySelectorAll('.why__card');
+    cards?.forEach(card => observer.observe(card));
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section className={`why ${visible ? 'why--visible' : ''}`} ref={sectionRef}>
+    <section className="why" ref={sectionRef}>
       <div className="why__inner">
+
+        {/* Header */}
         <div className="why__header">
-          <div className="why__eyebrow">Why Teams Lose Revenue</div>
+          <div className="why__eyebrow">Platform Capabilities</div>
           <h2 className="why__headline">
-            The gap between inbound lead<br />
-            and disciplined follow-up<br />
-            destroys deal volume.
+            Built for operators who need<br />
+            control, visibility, and<br />
+            conversion at scale.
           </h2>
           <p className="why__body">
-            Most real estate operators do not have a lead problem. They have an execution problem.<br />
-            Remiliux closes that gap with operating rigor across the full revenue system.
+            Every surface is designed to help acquisition teams execute faster without losing clarity. The
+            product language stays CRM-native while the presentation stays premium.
           </p>
         </div>
 
+        {/* 3-column dark card grid */}
         <div className="why__cards">
-          {PAIN_POINTS.map((point, i) => (
+          {FEATURES.map((f, i) => (
             <div
               key={i}
-              className="why__card"
-              style={{ transitionDelay: `${i * 80}ms` }}
+              className={`why__card ${visibleCards.has(i) ? 'why__card--visible' : ''}`}
+              data-idx={i}
             >
-              <div className="why__card-icon">{point.icon}</div>
-              <p className="why__card-text">{point.text}</p>
+              <div className="why__card-icon">
+                <span>{f.icon}</span>
+              </div>
+              <div className="why__card-body">
+                <div className="why__card-title">{f.title}</div>
+                <p className="why__card-desc">{f.desc}</p>
+              </div>
             </div>
           ))}
         </div>
+
       </div>
     </section>
   );
