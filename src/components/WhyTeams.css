@@ -1,14 +1,20 @@
-/* ── Section ── */
+/* ── Outer section — taupe background ── */
 .why {
   background: #c4aa8f;
-  padding: 120px 72px;
+  padding: 48px 48px;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
 }
 
+/* ── Inner frame — the large rounded card container ── */
 .why__inner {
   max-width: 1160px;
   margin: 0 auto;
   width: 100%;
+  background: #FAF8F4;
+  border-radius: 24px;
+  padding: 72px 64px 80px;
 }
 
 /* ── Header ── */
@@ -41,7 +47,7 @@
   font-family: var(--font-body, sans-serif);
   font-size: 14px;
   line-height: 1.7;
-  color: #3d2e1e;
+  color: #6b5c4a;
   max-width: 560px;
 }
 
@@ -52,7 +58,7 @@
   gap: 12px;
 }
 
-/* ── Dark card — warm dark brown, not pure black ── */
+/* ── Dark card ── */
 .why__card {
   background: #1e1810;
   border-radius: 16px;
