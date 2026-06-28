@@ -9,42 +9,34 @@ const PAIN_POINTS = [
 ];
 
 export default function WhyTeamsBack({ animProgress = 0 }) {
-  // Shimmer sweep — decorative gold band
-  const shimmerP = Math.min(1, animProgress / 0.6);
+  // Shimmer sweep — decorative only
+  const shimmerP = Math.min(1, animProgress / 0.55);
   const shimmerX = -60 + shimmerP * 160;
-  const shimmerOpacity = shimmerP >= 1 ? 0 : Math.min(1, shimmerP * 3);
+  const shimmerOpacity = shimmerP >= 1 ? 0 : Math.min(1, shimmerP * 4);
 
-  // Cards animate in with stagger starting from animProgress = 0.15
-  // Each card: slides up from 40px + fades in + icon pops
-  const easeOut = t => 1 - Math.pow(1 - t, 3);
-  const easeSpring = t => {
-    // Slight overshoot for premium feel
-    if (t >= 1) return 1;
-    const c4 = (2 * Math.PI) / 4.5;
-    return 1 + Math.pow(2, -8 * t) * Math.sin((t * 10 - 0.75) * c4) * -1;
-  };
+  // Easing functions
+  const easeOut3 = t => 1 - Math.pow(1 - t, 3);
+  const easeOut4 = t => 1 - Math.pow(1 - t, 4);
 
-  // Stagger offsets — cards cascade left to right, top row first
-  const cardStarts = [0.10, 0.20, 0.30, 0.42];
-  const cardDuration = 0.35;
+  // Header fades in early and stays
+  const headerP = easeOut3(Math.min(1, animProgress / 0.30));
 
-  const cardP = cardStarts.map(start => {
-    const raw = Math.max(0, Math.min(1, (animProgress - start) / cardDuration));
-    return easeSpring(raw);
+  // Cards start appearing at animProgress = 0.45 (mid flip+zoom)
+  // Each card staggers 0.12 apart, duration 0.30 each
+  // Order: card 0 (top-left), 1 (top-mid), 2 (top-right), 3 (bottom-left)
+  const CARD_START = 0.45;
+  const CARD_STAGGER = 0.12;
+  const CARD_DUR = 0.30;
+
+  const cardP = PAIN_POINTS.map((_, i) => {
+    const start = CARD_START + i * CARD_STAGGER;
+    const raw = Math.max(0, Math.min(1, (animProgress - start) / CARD_DUR));
+    return easeOut4(raw);
   });
-
-  // Icon scale: small pop when card arrives
-  const iconP = cardStarts.map(start => {
-    const raw = Math.max(0, Math.min(1, (animProgress - start - 0.05) / 0.25));
-    return easeOut(raw);
-  });
-
-  // Header text fades in early
-  const headerP = easeOut(Math.min(1, animProgress / 0.25));
 
   return (
     <div className="wtb">
-      {/* Gold shimmer sweep */}
+      {/* Gold shimmer */}
       <div
         className="wtb__shimmer"
         style={{
@@ -54,12 +46,12 @@ export default function WhyTeamsBack({ animProgress = 0 }) {
       />
 
       <div className="wtb__content">
-        {/* Header always visible but fades in cleanly */}
+        {/* Header — always readable, gentle fade up */}
         <div
           className="wtb__header"
           style={{
-            opacity: 0.15 + headerP * 0.85,
-            transform: `translateY(${(1 - headerP) * 8}px)`,
+            opacity: 0.12 + headerP * 0.88,
+            transform: `translateY(${(1 - headerP) * 10}px)`,
           }}
         >
           <div className="wtb__eyebrow">Why Teams Lose Revenue</div>
@@ -74,29 +66,43 @@ export default function WhyTeamsBack({ animProgress = 0 }) {
           </p>
         </div>
 
-        {/* Pain point cards — staggered spring entrance */}
+        {/* Cards — appear one by one starting mid flip+zoom */}
         <div className="wtb__cards">
-          {PAIN_POINTS.map((point, i) => (
-            <div
-              key={i}
-              className="wtb__card"
-              style={{
-                opacity: Math.min(1, cardP[i] + 0.08),
-                transform: `translateY(${(1 - Math.min(1, cardP[i])) * 40}px)`,
-              }}
-            >
+          {PAIN_POINTS.map((point, i) => {
+            const cp = cardP[i];
+            return (
               <div
-                className="wtb__card-icon"
+                key={i}
+                className="wtb__card"
                 style={{
-                  transform: `scale(${0.5 + iconP[i] * 0.5})`,
-                  opacity: 0.3 + iconP[i] * 0.7,
+                  opacity: cp,
+                  transform: `translateY(${(1 - cp) * 48}px)`,
+                  // Slight scale for depth feel
+                  scale: `${0.92 + cp * 0.08}`,
                 }}
               >
-                {point.icon}
+                {/* Icon scales in with a tiny delay after card */}
+                <div
+                  className="wtb__card-icon"
+                  style={{
+                    transform: `scale(${0.4 + cp * 0.6}) rotate(${(1 - cp) * -8}deg)`,
+                    opacity: cp,
+                  }}
+                >
+                  {point.icon}
+                </div>
+                <p
+                  className="wtb__card-text"
+                  style={{
+                    opacity: 0.2 + cp * 0.8,
+                    transform: `translateX(${(1 - cp) * 10}px)`,
+                  }}
+                >
+                  {point.text}
+                </p>
               </div>
-              <p className="wtb__card-text">{point.text}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
