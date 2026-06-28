@@ -19,7 +19,7 @@
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: brightness(0.55) saturate(0.8);
+  filter: brightness(0.5) saturate(0.8);
 }
 
 .hero__bg-overlay {
@@ -27,9 +27,9 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(10, 8, 4, 0.82) 0%,
-    rgba(15, 12, 5, 0.65) 40%,
-    rgba(10, 8, 4, 0.45) 100%
+    rgba(10, 8, 4, 0.88) 0%,
+    rgba(15, 12, 5, 0.6) 50%,
+    rgba(10, 8, 4, 0.4) 100%
   );
 }
 
@@ -39,14 +39,14 @@
   z-index: 1;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 60px;
-  padding: 140px 72px 60px;
+  padding: 160px 96px 60px;
   flex: 1;
 }
 
 .hero__left {
-  flex: 0 0 480px;
-  max-width: 480px;
+  max-width: 560px;
 }
 
 /* Eyebrow */
@@ -68,23 +68,23 @@
 /* Headline */
 .hero__headline {
   font-family: var(--font-display);
-  font-size: clamp(52px, 6vw, 80px);
+  font-size: clamp(56px, 6.5vw, 88px);
   font-weight: 800;
   line-height: 1.0;
   color: white;
   letter-spacing: -0.02em;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 /* Subtext */
 .hero__sub {
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   line-height: 1.65;
-  color: rgba(255,255,255,0.7);
-  max-width: 420px;
-  margin-bottom: 40px;
+  color: rgba(255,255,255,0.65);
+  max-width: 440px;
+  margin-bottom: 44px;
 }
 
 /* CTAs */
@@ -101,18 +101,18 @@
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 600;
-  padding: 14px 30px;
+  padding: 15px 32px;
   border-radius: 999px;
   cursor: pointer;
   letter-spacing: 0.01em;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 4px 20px rgba(201, 168, 76, 0.35);
+  box-shadow: 0 4px 24px rgba(201, 168, 76, 0.4);
 }
 
 .hero__btn-primary:hover {
   background: var(--gold-light);
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(201, 168, 76, 0.45);
+  box-shadow: 0 8px 36px rgba(201, 168, 76, 0.5);
 }
 
 .hero__btn-secondary {
@@ -125,7 +125,7 @@
   font-family: var(--font-body);
   font-size: 15px;
   font-weight: 500;
-  padding: 14px 28px;
+  padding: 15px 28px;
   border-radius: 999px;
   cursor: pointer;
   backdrop-filter: blur(8px);
@@ -150,27 +150,41 @@
   padding-left: 2px;
 }
 
-/* Dashboard card */
-.hero__card-wrap {
-  flex: 1;
+/* Right side scroll hint */
+.hero__right {
   display: flex;
   align-items: center;
   justify-content: center;
-  perspective: 1200px;
+  flex: 1;
 }
 
-.hero__card-3d {
-  width: 100%;
-  max-width: 720px;
-  height: 420px;
-  border-radius: 16px;
-  box-shadow:
-    0 40px 80px rgba(0,0,0,0.6),
-    0 0 0 1px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.1);
-  transition: transform 0.05s linear;
-  transform-origin: center bottom;
-  will-change: transform;
+.hero__scroll-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.4;
+  animation: bob 2s ease-in-out infinite;
+}
+
+.hero__scroll-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.hero__scroll-arrow {
+  font-size: 20px;
+  color: var(--gold);
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
 }
 
 /* Stats bar */
@@ -180,8 +194,8 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 28px 72px;
-  background: rgba(10, 8, 4, 0.6);
+  padding: 28px 96px;
+  background: rgba(10, 8, 4, 0.65);
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(201, 168, 76, 0.12);
 }
@@ -199,7 +213,7 @@
 
 .hero__stat-value {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   color: white;
   line-height: 1;
@@ -208,14 +222,12 @@
 .hero__stat-label {
   font-family: var(--font-body);
   font-size: 12px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.45);
   margin-top: 3px;
   letter-spacing: 0.02em;
 }
 
-/* Divider between stats */
 .hero__stats .hero__stat:not(:last-child) {
-  padding-right: 40px;
-  border-right: 1px solid rgba(255,255,255,0.1);
-  margin-right: 0;
+  padding-right: 48px;
+  border-right: 1px solid rgba(255,255,255,0.08);
 }
