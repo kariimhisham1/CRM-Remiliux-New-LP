@@ -1,0 +1,40 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E2C97E;
+  --gold-dim: rgba(201, 168, 76, 0.15);
+  --dark: #0f0f0f;
+  --dark-mid: #1a1a1a;
+  --dark-card: rgba(255, 255, 255, 0.04);
+  --cream: #F5EFE0;
+  --cream-light: #FAF8F4;
+  --cream-card: rgba(245, 239, 224, 0.6);
+  --text-light: rgba(255,255,255,0.85);
+  --text-muted: rgba(255,255,255,0.45);
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--dark);
+  color: white;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
