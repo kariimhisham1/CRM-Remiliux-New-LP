@@ -1,13 +1,13 @@
-/* ── Outer section — taupe background ── */
+/* ── Section — background color driven by JS ── */
 .why {
-  background: #c4aa8f;
   padding: 36px 40px;
   min-height: 100vh;
   display: flex;
   align-items: center;
+  /* background set inline via JS morph */
 }
 
-/* ── Frosted glass frame ── */
+/* ── Frosted glass frame — slides up on enter ── */
 .why__inner {
   max-width: 1160px;
   margin: 0 auto;
@@ -21,6 +21,18 @@
     0 2px 40px rgba(120, 90, 50, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
   padding: 48px 52px 56px;
+
+  /* Entry state — hidden below */
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Visible state — slides up into place */
+.why__inner--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ── Header ── */
@@ -74,7 +86,8 @@
   border: 1px solid rgba(201, 168, 76, 0.12);
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: opacity 0.45s ease, transform 0.45s ease,
+              box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .why__card--visible {
