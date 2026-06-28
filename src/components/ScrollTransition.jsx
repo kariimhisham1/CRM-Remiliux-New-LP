@@ -11,6 +11,9 @@ const STATS = [
   { icon: '🛡', value: '24/7', label: 'Support' },
 ];
 
+// Navbar height — keeps expanded card below the nav
+const NAV_H = 64;
+
 export default function ScrollTransition() {
   const wrapRef = useRef(null);
   const [progress, setProgress] = useState(0);
@@ -18,7 +21,10 @@ export default function ScrollTransition() {
   const [vh, setVh] = useState(window.innerHeight);
 
   useEffect(() => {
-    const onResize = () => { setVw(window.innerWidth); setVh(window.innerHeight); };
+    const onResize = () => {
+      setVw(window.innerWidth);
+      setVh(window.innerHeight);
+    };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -37,36 +43,44 @@ export default function ScrollTransition() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [vh]);
 
-  // Phase 1 (0.00 → 0.35): flip front → 90deg
-  // Phase 2 (0.35 → 0.60): flip 90deg → back revealed
-  // Phase 3 (0.60 → 1.00): stage expands to fill full viewport
+  // Phase 1 (0.00 → 0.35): front flips to 90°
+  // Phase 2 (0.35 → 0.60): 90° → back fully revealed
+  // Phase 3 (0.60 → 1.00): card expands to fill sticky viewport
   const phase1 = Math.min(1, progress / 0.35);
   const phase2 = Math.max(0, Math.min(1, (progress - 0.35) / 0.25));
   const phase3 = Math.max(0, Math.min(1, (progress - 0.60) / 0.40));
 
-  // Negative = counter-clockwise flip
   const rotateY = -(phase1 * 90 + phase2 * 90);
 
+  // Card resting size in the right column
   const BASE_W = 700;
   const BASE_H = 430;
 
-  // During phase3 the stage goes fixed and expands to cover viewport
-  const isExpanding = phase3 > 0;
-  const stageW = isExpanding ? BASE_W + phase3 * (vw - BASE_W) : BASE_W;
-  const stageH = isExpanding ? BASE_H + phase3 * (vh - BASE_H) : BASE_H;
+  // Available area below navbar
+  const availH = vh - NAV_H;
+
+  // Expand from BASE size → full available viewport (below navbar, full width)
+  const stageW = BASE_W + phase3 * (vw - BASE_W);
+  const stageH = BASE_H + phase3 * (availH - BASE_H);
+
+  // Border radius collapses as card fills screen
   const radius = Math.round(16 * (1 - phase3));
 
-  // When expanding: stage moves from center of right-column to full screen
-  // We use fixed positioning anchored to viewport center, then shift top/left to 0
-  const expandTop = phase3 * (-50); // percent offset — handled via transform below
-  
+  // During phase3 the card moves from right-column center → full viewport center
+  // We keep it in the sticky container as absolute, centered
+  // Right-column center X ≈ left edge of right column + half its width
+  // Right column starts at ~500px (hero text) + 96px padding + 40px gap
+  const rightColLeft = 500 + 96 + 40;
+  const rightColCenter = rightColLeft + (vw - rightColLeft - 64) / 2; // 64 = right padding
+  const viewportCenter = vw / 2;
+  const centerX = rightColCenter + phase3 * (viewportCenter - rightColCenter);
+
+  // Vertical: center in available area (below navbar)
+  const centerY = NAV_H + availH / 2;
+
   const heroOpacity = Math.max(0, 1 - phase1 * 2);
   const darkBgOpacity = 1 - phase3;
   const creamBgOpacity = phase2 * 0.3 + phase3 * 0.7;
-
-  // Ghost frame fix: hide the flipper's perspective container bg during mid-flip
-  // by making the stage itself invisible at exactly 90deg (phase1=1, phase2=0)
-  const atEdge = phase1 === 1 && phase2 === 0;
 
   return (
     <div className="st" ref={wrapRef}>
@@ -108,51 +122,36 @@ export default function ScrollTransition() {
           </div>
         </div>
 
-        {/* Card — right column normally, fixed+fullscreen during phase3 */}
+        {/*
+          Card: always position:absolute inside the sticky container.
+          Centered via left/top + translate(-50%,-50%).
+          During phase3 it moves to viewport center and expands to fill.
+          NO position switching = NO jump/disappear.
+        */}
         <div
-          className="st__stage-wrapper"
-          style={isExpanding ? {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-          } : {
-            position: 'relative',
-            zIndex: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flex: 1,
+          className="st__stage"
+          style={{
+            width: stageW,
+            height: stageH,
+            borderRadius: radius,
+            position: 'absolute',
+            left: centerX,
+            top: centerY,
+            transform: 'translate(-50%, -50%)',
+            zIndex: phase3 > 0 ? 5 : 2,
           }}
         >
           <div
-            className="st__stage"
+            className="st__flipper"
             style={{
-              width: stageW,
-              height: stageH,
-              borderRadius: radius,
-              // Ghost fix: no background on the stage itself
-              background: 'transparent',
+              transform: `perspective(1400px) rotateY(${rotateY}deg)`,
             }}
           >
-            <div
-              className="st__flipper"
-              style={{
-                transform: `perspective(1400px) rotateY(${rotateY}deg)`,
-              }}
-            >
-              <div className="st__face st__face--front" style={{ borderRadius: radius }}>
-                <DashboardCard />
-              </div>
-              <div className="st__face st__face--back" style={{ borderRadius: radius }}>
-                <WhyTeamsBack />
-              </div>
+            <div className="st__face st__face--front" style={{ borderRadius: radius }}>
+              <DashboardCard />
+            </div>
+            <div className="st__face st__face--back" style={{ borderRadius: radius }}>
+              <WhyTeamsBack />
             </div>
           </div>
         </div>
