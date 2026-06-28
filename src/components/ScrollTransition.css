@@ -12,14 +12,13 @@
   overflow: hidden;
   display: flex;
   align-items: center;
-  /* Left: hero text, Right: card */
   flex-direction: row;
   justify-content: space-between;
   padding: 0 64px 0 96px;
   gap: 40px;
 }
 
-/* ── Dark background (hero) ── */
+/* ── Dark background ── */
 .st__bg-dark {
   position: absolute;
   inset: 0;
@@ -46,7 +45,7 @@
   );
 }
 
-/* ── Cream background (back face) ── */
+/* ── Cream background ── */
 .st__bg-cream {
   position: absolute;
   inset: 0;
@@ -55,13 +54,13 @@
   pointer-events: none;
 }
 
-/* ── Hero text (left) ── */
+/* ── Hero text ── */
 .st__hero-content {
   position: relative;
   z-index: 2;
   max-width: 500px;
   flex-shrink: 0;
-  padding-bottom: 80px; /* offset for stats bar */
+  padding-bottom: 80px;
 }
 
 .st__eyebrow {
@@ -159,18 +158,15 @@
   padding-left: 2px;
 }
 
-/* ── Stage — the card container that grows in phase 4 ── */
+/* ── Stage ── */
 .st__stage {
   position: relative;
   z-index: 2;
   flex-shrink: 0;
   overflow: hidden;
-  /* Grows from right-column card to full viewport via JS */
   box-shadow:
     0 40px 80px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(255, 255, 255, 0.07);
-  /* When fully expanded, no shadow needed */
-  transition: box-shadow 0.1s ease;
 }
 
 /* ── Flipper ── */
@@ -196,8 +192,9 @@
   background: #f5f3ee;
 }
 
+/* Back face uses -180deg to match the negative flip direction */
 .st__face--back {
-  transform: rotateY(180deg);
+  transform: rotateY(-180deg);
   background: #FAF8F4;
 }
 
