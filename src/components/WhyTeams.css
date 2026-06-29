@@ -1,9 +1,6 @@
-/* ── Tall scroll wrapper ──
-   Paced for: intro hold → flip → pause → merge → pause →
-   timeline slide → pause → integrations/pills → final pause.
-   Increase this to slow the WHOLE sequence down further. */
+/* ── Tall scroll wrapper ── */
 .wt {
-  height: 1300vh;
+  height: 1500vh;
   position: relative;
 }
 
@@ -15,24 +12,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 64px 28px 20px;
+  padding: 72px 32px 20px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-/* ── Frosted frame ── */
+/* ── Frosted frame — bigger ── */
 .wt__frame {
   width: 100%;
-  max-width: 1100px;
-  background: rgba(250, 248, 244, 0.55);
+  max-width: 1200px;
+  background: rgba(250, 248, 244, 0.52);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-radius: 20px;
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   box-shadow:
-    0 2px 40px rgba(120, 90, 50, 0.12),
+    0 2px 48px rgba(120, 90, 50, 0.13),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 32px 44px 28px;
+  padding: 36px 48px 32px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -46,16 +43,16 @@
   transform: translateY(0);
 }
 
-/* ── Headers — overlaid, fade between them ── */
+/* ── Headers ── */
 .wt__header {
-  top: 32px;
-  left: 44px;
-  right: 44px;
+  top: 36px;
+  left: 48px;
+  right: 48px;
   transition: opacity 0.3s ease;
 }
 .wt__header-spacer {
-  height: 108px;
-  margin-bottom: 16px;
+  height: 116px;
+  margin-bottom: 12px;
   flex-shrink: 0;
 }
 .wt__eyebrow {
@@ -69,7 +66,7 @@
 }
 .wt__headline {
   font-family: var(--font-display, serif);
-  font-size: clamp(22px, 2.6vw, 33px);
+  font-size: clamp(24px, 2.8vw, 36px);
   font-weight: 800;
   color: #1a1509;
   line-height: 1.1;
@@ -84,26 +81,20 @@
   max-width: 480px;
 }
 
-/* ───────────────────────────────────────────────
-   STAGE — the 6 cards, the Workflow Intelligence
-   text overlay, and the timeline panel all live
-   here as absolutely-positioned siblings so the
-   cards can merge directly into the panel shape.
-   ─────────────────────────────────────────────── */
+/* ── Stage — taller to fill frame better ── */
 .wt__cards-stage {
   position: relative;
-  height: clamp(320px, 40vh, 400px);
+  height: clamp(340px, 44vh, 420px);
   flex-shrink: 0;
 }
-
 .wt__cards {
   position: absolute;
   inset: 0;
 }
 
+/* ── Card scene ── */
 .wt__card-scene {
   position: absolute;
-  perspective: 900px;
   will-change: transform;
 }
 .wt__card-flipper {
@@ -117,242 +108,175 @@
   position: absolute;
   inset: 0;
   background: #1e1810;
-  padding: 18px 18px 20px;
+  padding: 20px 20px 22px;
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(201, 168, 76, 0.16);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   overflow: hidden;
-  /* border-radius and box-shadow are set inline, animated per-card */
 }
-.wt__card--front {
-  transform: rotateY(0deg);
-}
-.wt__card--back {
-  transform: rotateY(180deg);
-  background: #231c0f;
-}
+.wt__card--front { transform: rotateY(0deg); }
+.wt__card--back  { transform: rotateY(180deg); background: #231c0f; }
+
 .wt__card-icon {
   font-size: 17px;
-  margin-bottom: 9px;
-  width: 30px;
-  height: 30px;
+  margin-bottom: 10px;
+  width: 32px; height: 32px;
   border-radius: 8px;
   background: rgba(201, 168, 76, 0.1);
   border: 1px solid rgba(201, 168, 76, 0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 .wt__card-title {
   font-family: var(--font-body, sans-serif);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #f5ead8;
-  margin-bottom: 5px;
-  line-height: 1.2;
+  font-size: 13px; font-weight: 600;
+  color: #f5ead8; margin-bottom: 6px; line-height: 1.2;
 }
 .wt__card-desc {
   font-family: var(--font-body, sans-serif);
-  font-size: 10.5px;
-  line-height: 1.48;
-  color: rgba(245, 234, 216, 0.40);
-  margin: 0;
+  font-size: 11px; line-height: 1.5;
+  color: rgba(245, 234, 216, 0.40); margin: 0;
 }
 
-/* ── Workflow Intelligence text — sits on top of the connected card block ── */
+/* ── Workflow Intelligence overlay (right panel text) ── */
 .wt__workflow-overlay {
   position: absolute;
-  top: 0;
-  height: 100%;
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
+  top: 0; height: 100%;
+  padding: 24px 26px;
+  display: flex; flex-direction: column;
   box-sizing: border-box;
+  /* sits on top of the merged card block */
 }
 .wt__workflow-eyebrow {
   font-family: var(--font-body, sans-serif);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold, #C9A84C);
-  margin-bottom: 8px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold, #C9A84C); margin-bottom: 10px;
 }
 .wt__workflow-headline {
   font-family: var(--font-display, serif);
-  font-size: clamp(16px, 1.7vw, 20px);
-  font-weight: 700;
-  color: #f5ead8;
-  line-height: 1.18;
-  margin-bottom: 8px;
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 700; color: #f5ead8;
+  line-height: 1.15; margin-bottom: 10px;
 }
 .wt__workflow-body {
   font-family: var(--font-body, sans-serif);
-  font-size: 11px;
-  line-height: 1.55;
-  color: rgba(245, 234, 216, 0.55);
-  margin-bottom: 10px;
+  font-size: 11.5px; line-height: 1.6;
+  color: rgba(245, 234, 216, 0.5); margin-bottom: 0;
 }
-.wt__stat-list {
-  margin-top: auto;
-}
+.wt__stat-list { margin-top: auto; }
 .wt__stat-row {
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
   justify-content: space-between;
-  padding: 9px 0;
+  padding: 10px 0;
   border-top: 1px solid rgba(201, 168, 76, 0.14);
   font-family: var(--font-body, sans-serif);
-  font-size: 12px;
-  color: rgba(245, 234, 216, 0.75);
+  font-size: 12px; color: rgba(245, 234, 216, 0.7);
 }
-.wt__stat-row strong {
-  color: var(--gold, #C9A84C);
-  font-weight: 700;
+.wt__stat-row strong { color: var(--gold, #C9A84C); font-weight: 700; }
+
+/* ── Combined outer frame for both panels ── */
+.wt__panel-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  box-shadow:
+    0 8px 48px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  pointer-events: none;
+  z-index: 10;
 }
 
-/* ── Timeline panel — its own card, slides in from the left ── */
+/* ── Timeline panel — curtain slides from behind right panel ── */
 .wt__timeline-panel {
   position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
+  left: 0; top: 0; height: 100%;
   background: #1a1409;
-  border-radius: 14px;
-  border: 1px solid rgba(201, 168, 76, 0.16);
-  padding: 16px 20px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+  border-radius: 14px 0 0 14px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-right: none;
+  padding: 20px 24px;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  /* clips to stay behind right panel until fully revealed */
+  transform-origin: right center;
 }
 .wt__timeline-step {
-  display: flex;
-  gap: 12px;
-  padding: 7px 0;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+  display: flex; gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.1);
 }
-.wt__timeline-step:last-child {
-  border-bottom: none;
-}
+.wt__timeline-step:last-child { border-bottom: none; }
 .wt__timeline-icon {
-  width: 28px;
-  height: 28px;
+  width: 30px; height: 30px;
   border-radius: 50%;
   border: 1px solid rgba(201, 168, 76, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+  background: rgba(201, 168, 76, 0.06);
 }
 .wt__timeline-steplabel {
   font-family: var(--font-body, sans-serif);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold, #C9A84C);
-  margin-bottom: 2px;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold, #C9A84C); margin-bottom: 2px;
 }
 .wt__timeline-title {
   font-family: var(--font-body, sans-serif);
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #f5ead8;
-  margin-bottom: 2px;
+  font-size: 13px; font-weight: 700;
+  color: #f5ead8; margin-bottom: 3px;
 }
 .wt__timeline-desc {
   font-family: var(--font-body, sans-serif);
-  font-size: 10.5px;
-  line-height: 1.4;
-  color: rgba(245, 234, 216, 0.55);
-  margin: 0;
+  font-size: 11px; line-height: 1.45;
+  color: rgba(245, 234, 216, 0.5); margin: 0;
 }
 
-/* ── PHASE 4: Connected Systems + integration pills ──
-   maxHeight is animated inline from JS so this reserves ~0 space
-   until its phase actually begins — no dead gap below the stage. */
+/* ── Integrations ── */
 .wt__integrations {
-  flex-shrink: 0;
-  overflow: hidden;
+  flex-shrink: 0; overflow: hidden;
 }
 .wt__integrations-headline {
   font-family: var(--font-display, serif);
-  font-size: clamp(17px, 1.9vw, 22px);
-  font-weight: 700;
-  color: #1a1509;
-  line-height: 1.18;
-  margin-bottom: 6px;
+  font-size: clamp(18px, 2vw, 24px); font-weight: 700;
+  color: #1a1509; line-height: 1.18; margin-bottom: 6px;
 }
 .wt__integrations-body {
   font-family: var(--font-body, sans-serif);
-  font-size: 12px;
-  line-height: 1.55;
-  color: #6b5c4a;
-  max-width: 560px;
-  margin-bottom: 14px;
+  font-size: 12px; line-height: 1.55;
+  color: #6b5c4a; max-width: 560px; margin-bottom: 14px;
 }
 .wt__pills {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 2px;
+  display: flex; gap: 10px;
+  overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
 }
-.wt__pills::-webkit-scrollbar {
-  display: none;
-}
+.wt__pills::-webkit-scrollbar { display: none; }
 .wt__pill {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
   background: #1a1409;
-  border: 1px solid rgba(201, 168, 76, 0.18);
-  border-radius: 999px;
-  padding: 10px 14px;
-  white-space: nowrap;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 999px; padding: 10px 16px; white-space: nowrap;
 }
-.wt__pill-icon {
-  font-size: 14px;
-}
+.wt__pill-icon { font-size: 14px; }
 .wt__pill-label {
   font-family: var(--font-body, sans-serif);
-  font-size: 12px;
-  font-weight: 600;
-  color: #f5ead8;
+  font-size: 12px; font-weight: 600; color: #f5ead8;
 }
 .wt__pill-tag {
   font-family: var(--font-body, sans-serif);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
   color: rgba(201, 168, 76, 0.85);
   background: rgba(201, 168, 76, 0.12);
-  border-radius: 999px;
-  padding: 3px 8px;
+  border-radius: 999px; padding: 3px 8px;
 }
 
-/* ── Respect reduced-motion preference ── */
 @media (prefers-reduced-motion: reduce) {
-  .wt__card-flipper,
-  .wt__timeline-panel,
-  .wt__pill,
-  .wt__integrations {
-    transform: none !important;
-    transition: opacity 0.3s ease !important;
-  }
-}
-
-/* ── Small screens: stack the two panels, scroll pills ── */
-@media (max-width: 720px) {
-  .wt__cards-stage {
-    height: clamp(460px, 76vh, 600px);
-  }
+  .wt__card-flipper, .wt__timeline-panel, .wt__pill { transition: none !important; }
 }
