@@ -45,29 +45,37 @@ const easeOut2  = t => 1 - Math.pow(1-t, 2);
 const clamp01   = n => Math.max(0, Math.min(1, n));
 const band      = (p, s, e) => clamp01((p-s)/(e-s));
 
-// ── Phase timing — slower flip (longer duration per card) ──
-const FLIP_S = 0.03, FLIP_STAGGER = 0.04, FLIP_DUR = 0.16; // slower flip
-const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.39
+// ── Phase timing ──
+// Card flips and the merge-shrink are tightened slightly (vs. the previous
+// version) to make room in the 0–1 scroll budget for the new sequential
+// timeline-step reveal below, without pushing integrations/pills past 1.0.
+const FLIP_S = 0.03, FLIP_STAGGER = 0.028, FLIP_DUR = 0.11;
+const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.28
 
 const HEADER_S = 0.05, HEADER_E = 0.22;
 
 const FADE_S = FLIP_E + 0.03, FADE_E = FADE_S + 0.07;
 
 // Cards merge to right panel
-const SHRINK_S = FLIP_E + 0.02, SHRINK_STAGGER = 0.022, SHRINK_DUR = 0.14;
-const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.67
+const SHRINK_S = FLIP_E + 0.02, SHRINK_STAGGER = 0.016, SHRINK_DUR = 0.10;
+const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.48
 
 // Right panel text appears as cards form it
-const WF_S = SHRINK_S + 0.08, WF_E = SHRINK_E + 0.05;
+const WF_S = SHRINK_S + 0.06, WF_E = SHRINK_E + 0.04;
 
-// Timeline curtain slides from RIGHT (behind right panel, reveals leftward)
-const TL_S = SHRINK_E + 0.03, TL_E = TL_S + 0.12;
+// Timeline panel background fades in (replaces the old curtain wipe)
+const TL_BG_S = SHRINK_E + 0.02, TL_BG_E = TL_BG_S + 0.04;
+
+// Timeline STEPS reveal one at a time, after the panel background is in.
+// Each step gets its own band; the connector line grows across the same span.
+const TL_STEP_S = TL_BG_E + 0.01, TL_STEP_STAGGER = 0.045, TL_STEP_DUR = 0.06;
+const TL_STEPS_E = TL_STEP_S + 3*TL_STEP_STAGGER + TL_STEP_DUR; // last step finishes, ~0.745
 
 // Frame border appears when both panels are ready
-const FRAME_S = TL_S + 0.02, FRAME_E = TL_E;
+const FRAME_S = TL_BG_S + 0.02, FRAME_E = TL_STEPS_E;
 
 // Integrations
-const INT_S = TL_E + 0.04, INT_E = INT_S + 0.07;
+const INT_S = TL_STEPS_E + 0.04, INT_E = INT_S + 0.07;
 const PILL_S = INT_S + 0.02, PILL_STAGGER = 0.015, PILL_DUR = 0.05;
 
 // Right panel takes 48% of stage width
@@ -115,7 +123,7 @@ export default function WhyTeams() {
   // Header crossfade
   const hFlip = easeInOut(band(progress, HEADER_S, HEADER_E));
 
-  // Card flips — slower
+  // Card flips
   const cardFlips = SET_A.map((_, i) => {
     const s = FLIP_S + i * FLIP_STAGGER;
     return easeInOut(band(progress, s, s + FLIP_DUR));
@@ -143,13 +151,17 @@ export default function WhyTeams() {
   // Workflow text opacity
   const wfOpacity = easeOut(band(progress, WF_S, WF_E));
 
-  // Timeline curtain: slides from RIGHT to LEFT (curtain effect)
-  // Starts hidden at translateX = its full width (off to the right behind right panel)
-  // Slides left to translateX = 0
-  const tlT      = easeOut(band(progress, TL_S, TL_E));
-  // clipPath reveals from right edge leftward — curtain wipe
-  const curtainReveal = tlT; // 0 = fully hidden, 1 = fully revealed
+  // Timeline panel background — fades in as a flat reveal (no more curtain wipe)
+  const tlBgOpacity = easeOut(band(progress, TL_BG_S, TL_BG_E));
   const tlWidth  = `${(1 - RIGHT_FRAC) * 100 - 0.5}%`;
+
+  // Each timeline step reveals on its own staggered band: fade + slide up
+  const stepP = i => easeOut(band(progress, TL_STEP_S + i*TL_STEP_STAGGER, TL_STEP_S + i*TL_STEP_STAGGER + TL_STEP_DUR));
+  const stepTs = STEPS.map((_, i) => stepP(i));
+
+  // Connector line grows downward across the same span the steps occupy,
+  // reaching each icon's center as that step finishes revealing.
+  const lineGrowth = easeOut(band(progress, TL_STEP_S, TL_STEPS_E));
 
   // Combined frame opacity
   const frameOpacity = easeOut(band(progress, FRAME_S, FRAME_E));
@@ -279,24 +291,33 @@ export default function WhyTeams() {
               </div>
             </div>
 
-            {/* Timeline panel — curtain wipe from right edge leftward */}
+            {/* Timeline panel — background fades in, then each step reveals in sequence */}
             <div className="wt__timeline-panel" style={{
               width: tlWidth,
-              opacity: Math.min(1, curtainReveal * 3), // fade in fast at start
-              // Curtain: clip from right side, revealing leftward
-              clipPath: `inset(0 ${(1 - curtainReveal) * 100}% 0 0)`,
-              pointerEvents: curtainReveal > 0.8 ? 'auto' : 'none',
+              opacity: tlBgOpacity,
+              pointerEvents: tlBgOpacity > 0.8 ? 'auto' : 'none',
             }}>
-              {STEPS.map((s, i) => (
-                <div className="wt__timeline-step" key={i}>
-                  <div className="wt__timeline-icon">{s.icon}</div>
-                  <div className="wt__timeline-copy">
-                    <div className="wt__timeline-steplabel">STEP {i+1}</div>
-                    <div className="wt__timeline-title">{s.title}</div>
-                    <p className="wt__timeline-desc">{s.desc}</p>
+              {/* Connector line grows downward behind the icons as steps reveal */}
+              <div className="wt__timeline-line-track">
+                <div className="wt__timeline-line-fill" style={{ height: `${lineGrowth * 100}%` }} />
+              </div>
+
+              {STEPS.map((s, i) => {
+                const st = stepTs[i];
+                return (
+                  <div className="wt__timeline-step" key={i} style={{
+                    opacity: st,
+                    transform: `translateY(${(1-st)*14}px)`,
+                  }}>
+                    <div className="wt__timeline-icon">{s.icon}</div>
+                    <div className="wt__timeline-copy">
+                      <div className="wt__timeline-steplabel">STEP {i+1}</div>
+                      <div className="wt__timeline-title">{s.title}</div>
+                      <p className="wt__timeline-desc">{s.desc}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
           </div>{/* end stage */}
