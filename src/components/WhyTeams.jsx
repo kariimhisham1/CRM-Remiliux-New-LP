@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bell, MessageSquare, Mail, Voicemail } from 'lucide-react';
 import './WhyTeams.css';
 
 const SET_A = [
@@ -18,16 +17,12 @@ const SET_B = [
   { icon: '📊', title: 'Reporting & Analytics', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
   { icon: '📈', title: 'Deal Lifecycle Tracking', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
 ];
-
-// STEPS now hold icon *components*, not emoji, so they render as crisp
-// gold line icons (lucide-react) matching the target design.
 const STEPS = [
-  { Icon: Bell, title: 'Lead Arrives', desc: 'Via web form, ad, import, referral, or direct response captured instantly.' },
-  { Icon: MessageSquare, title: 'Text Sent', desc: 'AI-matched SMS is launched immediately with contextual personalization.' },
-  { Icon: Mail, title: 'Email Sent', desc: 'A branded email reinforces credibility and defines next best actions.' },
-  { Icon: Voicemail, title: 'Voicemail Drop', desc: 'A smart voicemail is delivered when no response is detected.' },
+  { icon: '🔔', title: 'Lead Arrives', desc: 'Via web form, ad, import, referral, or direct response captured instantly.' },
+  { icon: '💬', title: 'Text Sent', desc: 'AI-matched SMS is launched immediately with contextual personalization.' },
+  { icon: '✉️', title: 'Email Sent', desc: 'A branded email reinforces credibility and defines next best actions.' },
+  { icon: '📞', title: 'Voicemail Drop', desc: 'A smart voicemail is delivered when no response is detected.' },
 ];
-
 const STATS = [
   { label: 'Total delivery rate', value: '99.2%' },
   { label: 'Email response uplift', value: '+47%' },
@@ -50,37 +45,29 @@ const easeOut2  = t => 1 - Math.pow(1-t, 2);
 const clamp01   = n => Math.max(0, Math.min(1, n));
 const band      = (p, s, e) => clamp01((p-s)/(e-s));
 
-// ── Phase timing ──
-// Card flips and the merge-shrink were tightened slightly (vs. the previous
-// version) to make room in the 0–1 scroll budget for the new sequential
-// timeline-step reveal below, without pushing integrations/pills past 1.0.
-const FLIP_S = 0.03, FLIP_STAGGER = 0.028, FLIP_DUR = 0.11;
-const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.28
+// ── Phase timing — slower flip (longer duration per card) ──
+const FLIP_S = 0.03, FLIP_STAGGER = 0.04, FLIP_DUR = 0.16; // slower flip
+const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.39
 
 const HEADER_S = 0.05, HEADER_E = 0.22;
 
 const FADE_S = FLIP_E + 0.03, FADE_E = FADE_S + 0.07;
 
 // Cards merge to right panel
-const SHRINK_S = FLIP_E + 0.02, SHRINK_STAGGER = 0.016, SHRINK_DUR = 0.10;
-const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.48
+const SHRINK_S = FLIP_E + 0.02, SHRINK_STAGGER = 0.022, SHRINK_DUR = 0.14;
+const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.67
 
 // Right panel text appears as cards form it
-const WF_S = SHRINK_S + 0.06, WF_E = SHRINK_E + 0.04;
+const WF_S = SHRINK_S + 0.08, WF_E = SHRINK_E + 0.05;
 
-// Timeline panel background fades in (replaces old curtain wipe)
-const TL_BG_S = SHRINK_E + 0.02, TL_BG_E = TL_BG_S + 0.04;
-
-// Timeline STEPS reveal one at a time, after the panel background is in.
-// Each step gets its own band; the connector line grows across the same span.
-const TL_STEP_S = TL_BG_E + 0.01, TL_STEP_STAGGER = 0.045, TL_STEP_DUR = 0.06;
-const TL_STEPS_E = TL_STEP_S + 3*TL_STEP_STAGGER + TL_STEP_DUR; // last step finishes, ~0.745
+// Timeline curtain slides from RIGHT (behind right panel, reveals leftward)
+const TL_S = SHRINK_E + 0.03, TL_E = TL_S + 0.12;
 
 // Frame border appears when both panels are ready
-const FRAME_S = TL_BG_S + 0.02, FRAME_E = TL_STEPS_E;
+const FRAME_S = TL_S + 0.02, FRAME_E = TL_E;
 
 // Integrations
-const INT_S = TL_STEPS_E + 0.04, INT_E = INT_S + 0.07;
+const INT_S = TL_E + 0.04, INT_E = INT_S + 0.07;
 const PILL_S = INT_S + 0.02, PILL_STAGGER = 0.015, PILL_DUR = 0.05;
 
 // Right panel takes 48% of stage width
@@ -156,17 +143,13 @@ export default function WhyTeams() {
   // Workflow text opacity
   const wfOpacity = easeOut(band(progress, WF_S, WF_E));
 
-  // Timeline panel background — fades in as a flat reveal (no more curtain wipe)
-  const tlBgOpacity = easeOut(band(progress, TL_BG_S, TL_BG_E));
+  // Timeline curtain: slides from RIGHT to LEFT (curtain effect)
+  // Starts hidden at translateX = its full width (off to the right behind right panel)
+  // Slides left to translateX = 0
+  const tlT      = easeOut(band(progress, TL_S, TL_E));
+  // clipPath reveals from right edge leftward — curtain wipe
+  const curtainReveal = tlT; // 0 = fully hidden, 1 = fully revealed
   const tlWidth  = `${(1 - RIGHT_FRAC) * 100 - 0.5}%`;
-
-  // Each timeline step reveals on its own staggered band: fade + slide up
-  const stepP = i => easeOut(band(progress, TL_STEP_S + i*TL_STEP_STAGGER, TL_STEP_S + i*TL_STEP_STAGGER + TL_STEP_DUR));
-  const stepTs = STEPS.map((_, i) => stepP(i));
-
-  // Connector line grows downward across the same span the steps occupy,
-  // reaching each icon's center as that step finishes revealing.
-  const lineGrowth = easeOut(band(progress, TL_STEP_S, TL_STEPS_E));
 
   // Combined frame opacity
   const frameOpacity = easeOut(band(progress, FRAME_S, FRAME_E));
@@ -296,36 +279,24 @@ export default function WhyTeams() {
               </div>
             </div>
 
-            {/* Timeline panel — background fades in, then each step reveals in sequence */}
+            {/* Timeline panel — curtain wipe from right edge leftward */}
             <div className="wt__timeline-panel" style={{
               width: tlWidth,
-              opacity: tlBgOpacity,
-              pointerEvents: tlBgOpacity > 0.8 ? 'auto' : 'none',
+              opacity: Math.min(1, curtainReveal * 3), // fade in fast at start
+              // Curtain: clip from right side, revealing leftward
+              clipPath: `inset(0 ${(1 - curtainReveal) * 100}% 0 0)`,
+              pointerEvents: curtainReveal > 0.8 ? 'auto' : 'none',
             }}>
-              {/* Connector line grows downward behind the icons as steps reveal */}
-              <div className="wt__timeline-line-track">
-                <div className="wt__timeline-line-fill" style={{ height: `${lineGrowth * 100}%` }} />
-              </div>
-
-              {STEPS.map((s, i) => {
-                const st = stepTs[i];
-                const StepIcon = s.Icon;
-                return (
-                  <div className="wt__timeline-step" key={i} style={{
-                    opacity: st,
-                    transform: `translateY(${(1-st)*14}px)`,
-                  }}>
-                    <div className="wt__timeline-icon">
-                      <StepIcon size={15} strokeWidth={1.8} />
-                    </div>
-                    <div className="wt__timeline-copy">
-                      <div className="wt__timeline-steplabel">STEP {i+1}</div>
-                      <div className="wt__timeline-title">{s.title}</div>
-                      <p className="wt__timeline-desc">{s.desc}</p>
-                    </div>
+              {STEPS.map((s, i) => (
+                <div className="wt__timeline-step" key={i}>
+                  <div className="wt__timeline-icon">{s.icon}</div>
+                  <div className="wt__timeline-copy">
+                    <div className="wt__timeline-steplabel">STEP {i+1}</div>
+                    <div className="wt__timeline-title">{s.title}</div>
+                    <p className="wt__timeline-desc">{s.desc}</p>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
           </div>{/* end stage */}
