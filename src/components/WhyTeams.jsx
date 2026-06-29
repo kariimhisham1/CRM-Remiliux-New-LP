@@ -1,6 +1,66 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './WhyTeams.css';
 
+// Small inline line-icon SVGs for the integration pills (gold outline badge
+// style). Hand-drawn rather than a library import — avoids adding a new
+// dependency (lucide-react previously caused a Vercel build failure when
+// it wasn't declared in package.json).
+const iconProps = { viewBox: '0 0 20 20', fill: 'none', xmlns: 'http://www.w3.org/2000/svg' };
+const IconDatabase = () => (
+  <svg {...iconProps}>
+    <ellipse cx="10" cy="5" rx="6" ry="2.2" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M4 5v4.5c0 1.2 2.7 2.2 6 2.2s6-1 6-2.2V5" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M4 9.5V14c0 1.2 2.7 2.2 6 2.2s6-1 6-2.2V9.5" stroke="currentColor" strokeWidth="1.4"/>
+  </svg>
+);
+const IconPhone = () => (
+  <svg {...iconProps}>
+    <path d="M5.5 3.5h2.2l1 3.3-1.6 1.4a8.5 8.5 0 0 0 4.2 4.2l1.4-1.6 3.3 1v2.2c0 .9-.8 1.5-1.6 1.4-6-.7-9.6-4.3-10.3-10.3-.1-.8.5-1.6 1.4-1.6Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+  </svg>
+);
+const IconEnvelope = () => (
+  <svg {...iconProps}>
+    <rect x="3" y="5" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M3.5 5.8 10 10.5l6.5-4.7" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+  </svg>
+);
+const IconMessage = () => (
+  <svg {...iconProps}>
+    <path d="M3.5 5.5h13a1 1 0 0 1 1 1v6.2a1 1 0 0 1-1 1H8.8L5.5 16V13.7H3.5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+  </svg>
+);
+const IconCalendar = () => (
+  <svg {...iconProps}>
+    <rect x="3.5" y="4.5" width="13" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M3.5 8h13M7 3v3M13 3v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+);
+const IconClipboard = () => (
+  <svg {...iconProps}>
+    <rect x="5" y="4" width="10" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+    <rect x="7.5" y="2.7" width="5" height="2.6" rx="0.8" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M7.2 9h5.6M7.2 12h5.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+  </svg>
+);
+const IconLink = () => (
+  <svg {...iconProps}>
+    <rect x="2.8" y="7.5" width="7" height="5" rx="2.5" transform="rotate(-45 6.3 10)" stroke="currentColor" strokeWidth="1.4"/>
+    <rect x="10.2" y="7.5" width="7" height="5" rx="2.5" transform="rotate(-45 13.7 10)" stroke="currentColor" strokeWidth="1.4"/>
+  </svg>
+);
+const IconHome = () => (
+  <svg {...iconProps}>
+    <path d="M4 9.5 10 4l6 5.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5.5 8.5V16h9V8.5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+    <path d="M8.2 16v-3.8h3.6V16" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+  </svg>
+);
+const IconChart = () => (
+  <svg {...iconProps}>
+    <path d="M4 16V11M9 16V6.5M14 16V9.5M4 16h12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
 const SET_A = [
   { icon: '📋', title: 'Lead Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
   { icon: '🔔', title: 'Smart Follow-Up Automation', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
@@ -29,14 +89,15 @@ const STATS = [
   { label: 'Appointment recovery rate', value: '2.4x' },
 ];
 const PILLS = [
-  { icon: '📱', label: 'Dialpad' },
-  { icon: '✉️', label: 'Email' },
-  { icon: '💬', label: 'SMS' },
-  { icon: '📅', label: 'Calendars' },
-  { icon: '📋', label: 'Lead Forms' },
-  { icon: '🔗', label: 'Zapier' },
-  { icon: '🏠', label: 'MLS' },
-  { icon: '📊', label: 'Analytics' },
+  { Icon: IconDatabase, label: 'CRM Imports' },
+  { Icon: IconPhone, label: 'Dialpad' },
+  { Icon: IconEnvelope, label: 'Email' },
+  { Icon: IconMessage, label: 'SMS' },
+  { Icon: IconCalendar, label: 'Calendars' },
+  { Icon: IconClipboard, label: 'Lead Forms' },
+  { Icon: IconLink, label: 'Zapier' },
+  { Icon: IconHome, label: 'MLS' },
+  { Icon: IconChart, label: 'Analytics' },
 ];
 
 const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
@@ -80,7 +141,6 @@ const FRAME_S = TL_BG_S + 0.02, FRAME_E = TL_STEPS_E;
 
 // Integrations
 const INT_S = TL_STEPS_E + 0.04, INT_E = INT_S + 0.07;
-const PILL_S = INT_S + 0.02, PILL_STAGGER = 0.015, PILL_DUR = 0.05;
 
 // Right panel takes 48% of stage width
 const RIGHT_FRAC = 0.48;
@@ -202,7 +262,6 @@ export default function WhyTeams() {
   // Integrations
   const intT    = easeOut(band(progress, INT_S, INT_E));
   const intGrow = easeOut(band(progress, INT_S - 0.01, INT_S + 0.06));
-  const pillP   = i => easeOut(band(progress, PILL_S + i*PILL_STAGGER, PILL_S + i*PILL_STAGGER + PILL_DUR));
 
   return (
     <div className="wt" ref={wrapRef}>
@@ -356,7 +415,7 @@ export default function WhyTeams() {
 
           {/* Integrations */}
           <div className="wt__integrations" style={{
-            maxHeight: `${intGrow * clampVH(150, 22, 210, viewportH)}px`,
+            maxHeight: `${intGrow * clampVH(156, 22.5, 212, viewportH)}px`,
             marginTop: `${intGrow * clampVH(5, 0.8, 12, viewportH)}px`,
             opacity: intT,
             transform: `translateY(${(1-intT)*16}px)`,
@@ -369,19 +428,25 @@ export default function WhyTeams() {
               The ecosystem is deliberately presented as enterprise-grade infrastructure,
               not a patchwork of plugins. Each connection extends the operating system.
             </p>
-            <div className="wt__pills">
-              {PILLS.map((p, i) => {
-                const ps = pillP(i);
-                return (
-                  <div key={i} className="wt__pill" style={{
-                    opacity: ps, transform: `translateX(${(1-ps)*-28}px)`,
-                  }}>
-                    <span className="wt__pill-icon">{p.icon}</span>
-                    <span className="wt__pill-label">{p.label}</span>
-                    <span className="wt__pill-tag">Native</span>
-                  </div>
-                );
-              })}
+            {/* Edge-fade viewport clips the track; the track holds the
+                pill list twice back-to-back and animates via CSS keyframes
+                (see .wt__pills-track in the CSS) for a seamless infinite
+                loop. Hovering pauses the animation (CSS :hover rule). */}
+            <div className="wt__pills" style={{
+              transform: `translateX(${(1-intT)*-28}px)`,
+            }}>
+              <div className="wt__pills-track">
+                {[...PILLS, ...PILLS].map((p, i) => {
+                  const PillIcon = p.Icon;
+                  return (
+                    <div key={i} className="wt__pill" aria-hidden={i >= PILLS.length}>
+                      <span className="wt__pill-icon"><PillIcon /></span>
+                      <span className="wt__pill-label">{p.label}</span>
+                      <span className="wt__pill-tag">Native</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
