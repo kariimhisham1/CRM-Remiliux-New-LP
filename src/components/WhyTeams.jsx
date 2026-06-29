@@ -43,20 +43,15 @@ const PILLS = [
 
 /* ───────────────────────────────────────────────────────────
    TIMELINE — every phase end is derived from the previous one
-   plus an explicit pause, so there's always a deliberate hold
-   between transitions and the math can't silently overlap.
+   plus an explicit pause, so transitions can't drift or overlap.
 
-   intro hold → flip → PAUSE → merge → PAUSE → timeline slide
-   → PAUSE → integrations + pills → PAUSE (final, holds to 1.0)
+   intro hold → flip → PAUSE → crossfade to panel → PAUSE →
+   timeline slide → PAUSE → integrations + pills → PAUSE (final)
    ─────────────────────────────────────────────────────────── */
 const easeInOut = t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 const easeOut = t => 1 - Math.pow(1 - t, 2.5);
-// Magnetic snap: barely moves at first, accelerates hard into the lock —
-// no ease-out softening at the end, so it reads as snapping into place.
-const magnetEase = t => t * t * t * t;
 const clamp01 = n => Math.max(0, Math.min(1, n));
 const band = (p, start, end) => clamp01((p - start) / (end - start));
-const lerp = (a, b, t) => a + (b - a) * t;
 
 const HEADER_START = 0.04, HEADER_END = 0.15;
 
@@ -64,68 +59,26 @@ const FLIP_START = 0.05, FLIP_STAGGER = 0.026, FLIP_DUR = 0.09;
 const FLIP_END = FLIP_START + 5 * FLIP_STAGGER + FLIP_DUR;          // ~0.275
 
 const PAUSE_1 = 0.07;
-const MERGE_START = FLIP_END + PAUSE_1;                              // ~0.345
-const MERGE_STAGGER = 0.034, MERGE_DUR = 0.11;                       // diagonal-ripple timing
-const MERGE_DIAG_MAX = 3;                                            // max(row+col) across the 3x2 grid
-const MERGE_SHAPE_END = MERGE_START + MERGE_DIAG_MAX * MERGE_STAGGER + MERGE_DUR; // ~0.557
+const CROSSFADE_START = FLIP_END + PAUSE_1;                          // ~0.345
+const CROSSFADE_DUR = 0.12;
+const CROSSFADE_END = CROSSFADE_START + CROSSFADE_DUR;              // ~0.465
 
 const PAUSE_2 = 0.06;
-const TIMELINE_START = MERGE_SHAPE_END + PAUSE_2;                     // ~0.605
+const TIMELINE_START = CROSSFADE_END + PAUSE_2;                      // ~0.525
 const TIMELINE_DUR = 0.11;
-const TIMELINE_END = TIMELINE_START + TIMELINE_DUR;                  // ~0.715
+const TIMELINE_END = TIMELINE_START + TIMELINE_DUR;                  // ~0.635
 
 const PAUSE_3 = 0.05;
-const INT_START = TIMELINE_END + PAUSE_3;                            // ~0.765
+const INT_START = TIMELINE_END + PAUSE_3;                            // ~0.685
 const INT_HEAD_DUR = 0.05;
-const INT_HEAD_END = INT_START + INT_HEAD_DUR;                       // ~0.815
+const INT_HEAD_END = INT_START + INT_HEAD_DUR;                       // ~0.735
 
-const PILL_START = INT_START + 0.03;                                 // ~0.795
+const PILL_START = INT_START + 0.03;                                 // ~0.715
 const PILL_STAGGER = 0.018, PILL_DUR = 0.06;
-// PILL end ≈ 0.945 — remaining ~0.055 of total scroll is a pure final pause.
+// last pill finishes ~0.865 — rest of the scroll is a generous final pause.
 
-/* ── Geometry shared between the 6 mini-cards and the two overlay panels ── */
-const COL_GAP = 1.3, ROW_GAP = 2.6;          // % gaps in the ORIGINAL 3x2 grid
-const RIGHT_X = 51, RIGHT_W = 49;            // target rect the cards merge into
-const LEFT_W = 49;                           // timeline panel's rect (mirror of RIGHT)
-const CARD_RADIUS = 12, PANEL_RADIUS = 14;
-
-// Diagonal ripple order: top-left card (row+col=0) merges first,
-// rippling outward to the bottom-right card (row+col=3) last.
-const diagIndex = i => Math.floor(i / 3) + (i % 3);
-
-function cardGeometry(i, shapeT) {
-  const col = i % 3, row = Math.floor(i / 3);
-  const startW = (100 - 2 * COL_GAP) / 3;
-  const startH = (100 - ROW_GAP) / 2;
-  const startX = col * (startW + COL_GAP);
-  const startY = row * (startH + ROW_GAP);
-
-  const endW = RIGHT_W / 3;
-  const endH = 50;
-  const endX = RIGHT_X + col * endW;
-  const endY = row * endH;
-
-  return {
-    left: lerp(startX, endX, shapeT),
-    top: lerp(startY, endY, shapeT),
-    width: lerp(startW, endW, shapeT),
-    height: lerp(startH, endH, shapeT),
-  };
-}
-
-function cardCorners(i, shapeT) {
-  const col = i % 3, row = Math.floor(i / 3);
-  const isTop = row === 0, isBottom = row === 1;
-  const isLeftCol = col === 0, isRightCol = col === 2;
-  const flat = lerp(CARD_RADIUS, 0, shapeT);
-  const outer = lerp(CARD_RADIUS, PANEL_RADIUS, shapeT);
-  return {
-    borderTopLeftRadius: isTop && isLeftCol ? outer : flat,
-    borderTopRightRadius: isTop && isRightCol ? outer : flat,
-    borderBottomLeftRadius: isBottom && isLeftCol ? outer : flat,
-    borderBottomRightRadius: isBottom && isRightCol ? outer : flat,
-  };
-}
+const RIGHT_X = 51, RIGHT_W = 49;  // workflow panel rect
+const LEFT_W = 49;                 // timeline panel rect (mirrors RIGHT)
 
 export default function WhyTeams() {
   const wrapRef = useRef(null);
@@ -167,25 +120,10 @@ export default function WhyTeams() {
     return easeInOut(band(progress, start, start + FLIP_DUR));
   });
 
-  /* ---------- Phase 2: cards merge into one vertical panel ---------- */
-  const shapeTs = SET_A.map((_, i) => {
-    const start = MERGE_START + diagIndex(i) * MERGE_STAGGER;
-    return magnetEase(band(progress, start, start + MERGE_DUR));
-  });
-  const maxShapeT = Math.max(...shapeTs, 0);
-
-  // Snap-impact flash: a brief gold glow right as each card locks into
-  // place, timed off the diagonal ripple groups (cards sharing a diagonal
-  // lock at the same moment).
-  const lockPulses = SET_A.map((_, i) => {
-    const start = MERGE_START + diagIndex(i) * MERGE_STAGGER;
-    const lockAt = start + MERGE_DUR;
-    return clamp01(1 - Math.abs(progress - lockAt) / 0.035);
-  });
-
-  // Workflow text fades in on top of the merged shape only once it has
-  // essentially finished assembling — content swap reads as "complete."
-  const wfTextOpacity = easeOut(band(progress, MERGE_SHAPE_END - 0.06, MERGE_SHAPE_END + 0.04));
+  /* ---------- Phase 2: simple crossfade from cards-grid to panel ---------- */
+  const crossfadeT = easeOut(band(progress, CROSSFADE_START, CROSSFADE_END));
+  const cardsOpacity = 1 - crossfadeT;
+  const workflowOpacity = crossfadeT;
 
   /* ---------- Phase 3: timeline panel slides in from the left ---------- */
   const timelineT = easeOut(band(progress, TIMELINE_START, TIMELINE_END));
@@ -227,50 +165,29 @@ export default function WhyTeams() {
 
           <div className="wt__header-spacer" />
 
-          {/* ---------- Stage: cards merge directly into the two overlay panels ---------- */}
+          {/* ---------- Stage: cards-grid crossfades straight into the two panels ---------- */}
           <div className="wt__cards-stage">
 
-            <div className="wt__cards">
+            {/* PHASE 1: the 6 flipping cards, normal CSS grid — fades out for phase 2 */}
+            <div
+              className="wt__cards"
+              style={{ opacity: cardsOpacity, pointerEvents: cardsOpacity > 0.05 ? 'auto' : 'none' }}
+            >
               {SET_A.map((frontCard, i) => {
                 const backCard = SET_B[i];
                 const rotateY = cardFlips[i] * 180;
-                const shapeT = shapeTs[i];
-                const geo = cardGeometry(i, shapeT);
-                const corners = cardCorners(i, shapeT);
-                const contentOpacity = 1 - easeInOut(clamp01((shapeT - 0.5) / 0.5));
-                const pulse = lockPulses[i];
-                const seamAlpha = Math.max(0.16 * (1 - shapeT), pulse * 0.85);
-                const shadowAlpha = 0.25 * (1 - shapeT * 0.8);
-                const glowAlpha = pulse * 0.75;
-                const boxShadowCombined = `0 4px 20px rgba(0,0,0,${shadowAlpha}), 0 0 ${pulse * 16}px rgba(201,168,76,${glowAlpha})`;
-
                 return (
-                  <div
-                    key={i}
-                    className="wt__card-scene"
-                    style={{
-                      left: `${geo.left}%`,
-                      top: `${geo.top}%`,
-                      width: `${geo.width}%`,
-                      height: `${geo.height}%`,
-                    }}
-                  >
+                  <div key={i} className="wt__card-scene">
                     <div className="wt__card-flipper" style={{ transform: `perspective(900px) rotateY(${rotateY}deg)` }}>
-                      <div
-                        className="wt__card wt__card--front"
-                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: boxShadowCombined }}
-                      >
-                        <div className="wt__card-icon" style={{ opacity: contentOpacity }}>{frontCard.icon}</div>
-                        <div className="wt__card-title" style={{ opacity: contentOpacity }}>{frontCard.title}</div>
-                        <p className="wt__card-desc" style={{ opacity: contentOpacity }}>{frontCard.desc}</p>
+                      <div className="wt__card wt__card--front">
+                        <div className="wt__card-icon">{frontCard.icon}</div>
+                        <div className="wt__card-title">{frontCard.title}</div>
+                        <p className="wt__card-desc">{frontCard.desc}</p>
                       </div>
-                      <div
-                        className="wt__card wt__card--back"
-                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: boxShadowCombined }}
-                      >
-                        <div className="wt__card-icon" style={{ opacity: contentOpacity }}>{backCard.icon}</div>
-                        <div className="wt__card-title" style={{ opacity: contentOpacity }}>{backCard.title}</div>
-                        <p className="wt__card-desc" style={{ opacity: contentOpacity }}>{backCard.desc}</p>
+                      <div className="wt__card wt__card--back">
+                        <div className="wt__card-icon">{backCard.icon}</div>
+                        <div className="wt__card-title">{backCard.title}</div>
+                        <p className="wt__card-desc">{backCard.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -278,14 +195,14 @@ export default function WhyTeams() {
               })}
             </div>
 
-            {/* Workflow Intelligence text — fades in on top of the merged card shape */}
+            {/* PHASE 2: Workflow Intelligence panel — fades in as the cards fade out */}
             <div
               className="wt__workflow-overlay"
               style={{
                 left: `${RIGHT_X}%`,
                 width: `${RIGHT_W}%`,
-                opacity: wfTextOpacity,
-                pointerEvents: wfTextOpacity > 0.5 ? 'auto' : 'none',
+                opacity: workflowOpacity,
+                pointerEvents: workflowOpacity > 0.5 ? 'auto' : 'none',
               }}
             >
               <div className="wt__workflow-eyebrow">Workflow Intelligence</div>
@@ -304,7 +221,7 @@ export default function WhyTeams() {
               </div>
             </div>
 
-            {/* Timeline panel — its own element, slides in from the left */}
+            {/* PHASE 3: Timeline panel — its own element, slides in from the left */}
             <div
               className="wt__timeline-panel"
               style={{
