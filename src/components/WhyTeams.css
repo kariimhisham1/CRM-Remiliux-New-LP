@@ -1,9 +1,9 @@
 /* ── Tall scroll wrapper ──
-   Increased to fit phases 2-5 (collapse, panel slide-in, pills, pause)
-   on top of the original phase-1 flip. Tune this number to control how
-   slow/fast the whole sequence feels — more vh = slower per phase. */
+   Paced for: intro hold → flip → pause → merge → pause →
+   timeline slide → pause → integrations/pills → final pause.
+   Increase this to slow the WHOLE sequence down further. */
 .wt {
-  height: 750vh;
+  height: 1300vh;
   position: relative;
 }
 
@@ -32,7 +32,7 @@
   box-shadow:
     0 2px 40px rgba(120, 90, 50, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 32px 44px 36px;
+  padding: 32px 44px 28px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -54,7 +54,7 @@
   transition: opacity 0.3s ease;
 }
 .wt__header-spacer {
-  height: 108px; /* reserves space for header above the stage */
+  height: 108px;
   margin-bottom: 16px;
   flex-shrink: 0;
 }
@@ -85,33 +85,29 @@
 }
 
 /* ───────────────────────────────────────────────
-   STAGE — cards-grid (phase 1/2) and the two-panel
-   card (phase 2/3) are layered in the same area so
-   one visually becomes the other.
+   STAGE — the 6 cards, the Workflow Intelligence
+   text overlay, and the timeline panel all live
+   here as absolutely-positioned siblings so the
+   cards can merge directly into the panel shape.
    ─────────────────────────────────────────────── */
 .wt__cards-stage {
   position: relative;
-  height: clamp(300px, 36vh, 360px);
+  height: clamp(320px, 40vh, 400px);
   flex-shrink: 0;
 }
-.wt__cards,
-.wt__panelcard {
+
+.wt__cards {
   position: absolute;
   inset: 0;
 }
 
-/* ── 3×2 card grid (phase 1 + 2) ── */
-.wt__cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 10px;
-  transition: opacity 0.25s ease;
-}
+/* Each card is positioned via inline left/top/width/height (%) computed
+   in JS — that's what lets it animate smoothly from a grid cell into a
+   flush segment of the merged panel. No CSS position values here. */
 .wt__card-scene {
-  height: 100%;
+  position: absolute;
   perspective: 900px;
-  will-change: transform, opacity;
+  will-change: left, top, width, height;
 }
 .wt__card-flipper {
   width: 100%;
@@ -124,20 +120,14 @@
   position: absolute;
   inset: 0;
   background: #1e1810;
-  border-radius: 12px;
-  padding: 20px 20px 22px;
+  padding: 18px 18px 20px;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(201, 168, 76, 0.14);
+  border: 1px solid transparent; /* color driven inline */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.wt__card:hover {
-  border-color: rgba(201, 168, 76, 0.32);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  /* border-radius and box-shadow are set inline per-card per-frame */
 }
 .wt__card--front {
   transform: rotateY(0deg);
@@ -147,97 +137,46 @@
   background: #231c0f;
 }
 .wt__card-icon {
-  font-size: 18px;
-  margin-bottom: 10px;
-  width: 32px;
-  height: 32px;
+  font-size: 17px;
+  margin-bottom: 9px;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
   background: rgba(201, 168, 76, 0.1);
   border: 1px solid rgba(201, 168, 76, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.15s linear;
 }
 .wt__card-title {
   font-family: var(--font-body, sans-serif);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #f5ead8;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   line-height: 1.2;
+  transition: opacity 0.15s linear;
 }
 .wt__card-desc {
   font-family: var(--font-body, sans-serif);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 10.5px;
+  line-height: 1.48;
   color: rgba(245, 234, 216, 0.40);
   margin: 0;
+  transition: opacity 0.15s linear;
 }
 
-/* ── PHASE 2 + 3: two-panel "Workflow Intelligence" card ── */
-.wt__panelcard {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 14px;
-  transition: opacity 0.25s ease;
-}
-
-.wt__timeline-panel,
-.wt__workflow-panel {
-  background: #1a1409;
-  border-radius: 14px;
-  border: 1px solid rgba(201, 168, 76, 0.16);
-  padding: 18px 20px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
-  overflow: hidden;
+/* ── Workflow Intelligence text overlay (sits on top of the merged cards) ── */
+.wt__workflow-overlay {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
-
-.wt__timeline-step {
-  display: flex;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
-}
-.wt__timeline-step:last-child {
-  border-bottom: none;
-}
-.wt__timeline-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 1px solid rgba(201, 168, 76, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-.wt__timeline-steplabel {
-  font-family: var(--font-body, sans-serif);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold, #C9A84C);
-  margin-bottom: 2px;
-}
-.wt__timeline-title {
-  font-family: var(--font-body, sans-serif);
-  font-size: 13px;
-  font-weight: 700;
-  color: #f5ead8;
-  margin-bottom: 2px;
-}
-.wt__timeline-desc {
-  font-family: var(--font-body, sans-serif);
-  font-size: 11px;
-  line-height: 1.45;
-  color: rgba(245, 234, 216, 0.55);
-  margin: 0;
-}
-
 .wt__workflow-eyebrow {
   font-family: var(--font-body, sans-serif);
   font-size: 9px;
@@ -280,10 +219,73 @@
   font-weight: 700;
 }
 
-/* ── PHASE 4: Connected Systems + integration pills ── */
-.wt__integrations {
-  margin-top: 18px;
+/* ── Timeline panel — its own card, slides in from the left ── */
+.wt__timeline-panel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: #1a1409;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  padding: 16px 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+.wt__timeline-step {
+  display: flex;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+}
+.wt__timeline-step:last-child {
+  border-bottom: none;
+}
+.wt__timeline-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
   flex-shrink: 0;
+}
+.wt__timeline-steplabel {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold, #C9A84C);
+  margin-bottom: 2px;
+}
+.wt__timeline-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #f5ead8;
+  margin-bottom: 2px;
+}
+.wt__timeline-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: rgba(245, 234, 216, 0.55);
+  margin: 0;
+}
+
+/* ── PHASE 4: Connected Systems + integration pills ──
+   maxHeight is animated inline from JS so this reserves ~0 space
+   until its phase actually begins — no dead gap below the stage. */
+.wt__integrations {
+  flex-shrink: 0;
+  overflow: hidden;
 }
 .wt__integrations-headline {
   font-family: var(--font-display, serif);
@@ -343,13 +345,10 @@
   padding: 3px 8px;
 }
 
-/* ── Respect reduced-motion preference ──
-   Collapse the scroll-driven choreography to simple fades. */
+/* ── Respect reduced-motion preference ── */
 @media (prefers-reduced-motion: reduce) {
-  .wt__card-scene,
   .wt__card-flipper,
   .wt__timeline-panel,
-  .wt__workflow-panel,
   .wt__pill,
   .wt__integrations {
     transform: none !important;
@@ -357,12 +356,9 @@
   }
 }
 
-/* ── Small screens: stack the two-panel card, scroll pills ── */
+/* ── Small screens: stack the two panels, scroll pills ── */
 @media (max-width: 720px) {
-  .wt__panelcard {
-    grid-template-columns: 1fr;
-  }
   .wt__cards-stage {
-    height: clamp(420px, 70vh, 560px);
+    height: clamp(460px, 76vh, 600px);
   }
 }
