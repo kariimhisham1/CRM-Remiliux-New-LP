@@ -29,14 +29,18 @@ const STATS = [
   { label: 'Appointment recovery rate', value: '2.4x' },
 ];
 const PILLS = [
+  { icon: '📋', label: 'Lead Forms' },
+  { icon: '📥', label: 'CRM Imports' },
   { icon: '📱', label: 'Dialpad' },
   { icon: '✉️', label: 'Email' },
   { icon: '💬', label: 'SMS' },
   { icon: '📅', label: 'Calendars' },
-  { icon: '📋', label: 'Lead Forms' },
   { icon: '🔗', label: 'Zapier' },
   { icon: '🏠', label: 'MLS' },
   { icon: '📊', label: 'Analytics' },
+  { icon: '🔔', label: 'Webhooks' },
+  { icon: '📞', label: 'VoIP' },
+  { icon: '🗂️', label: 'Google Sheets' },
 ];
 
 const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
@@ -288,14 +292,14 @@ export default function WhyTeams() {
 
           </div>{/* end stage */}
 
-          {/* Integrations */}
+          {/* Integrations — live marquee */}
           <div className="wt__integrations" style={{
-            maxHeight: `${intGrow * 200}px`,
+            maxHeight: `${intGrow * 180}px`,
             marginTop: `${intGrow * 14}px`,
             opacity: intT,
             transform: `translateY(${(1-intT)*16}px)`,
           }}>
-            <div className="wt__eyebrow" style={{ marginBottom:6 }}>Connected Systems</div>
+            <div className="wt__eyebrow" style={{ marginBottom: 6 }}>Connected Systems</div>
             <h3 className="wt__integrations-headline">
               Integrations that fit the stack serious<br />acquisition teams already use.
             </h3>
@@ -303,17 +307,17 @@ export default function WhyTeams() {
               The ecosystem is deliberately presented as enterprise-grade infrastructure,
               not a patchwork of plugins. Each connection extends the operating system.
             </p>
-            <div className="wt__pills">
-              {PILLS.map((p, i) => {
-                const ps = pillP(i);
-                return (
-                  <div key={i} className="wt__pill" style={{ opacity:ps, transform:`translateX(${(1-ps)*-28}px)` }}>
+            {/* Live auto-scrolling marquee — duplicated for seamless loop */}
+            <div className="wt__marquee-wrapper">
+              <div className="wt__marquee-track">
+                {[...PILLS, ...PILLS].map((p, i) => (
+                  <div key={i} className="wt__pill">
                     <span className="wt__pill-icon">{p.icon}</span>
                     <span className="wt__pill-label">{p.label}</span>
                     <span className="wt__pill-tag">Native</span>
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
           </div>
 
