@@ -99,16 +99,12 @@
 .wt__cards {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 10px;
-  transition: opacity 0.2s linear;
 }
 
 .wt__card-scene {
-  height: 100%;
+  position: absolute;
   perspective: 900px;
+  will-change: transform;
 }
 .wt__card-flipper {
   width: 100%;
@@ -121,7 +117,6 @@
   position: absolute;
   inset: 0;
   background: #1e1810;
-  border-radius: 12px;
   padding: 18px 18px 20px;
   display: flex;
   flex-direction: column;
@@ -129,7 +124,7 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  /* border-radius and box-shadow are set inline, animated per-card */
 }
 .wt__card--front {
   transform: rotateY(0deg);
@@ -166,15 +161,11 @@
   margin: 0;
 }
 
-/* ── Workflow Intelligence panel — own card, fades in as the cards fade out ── */
+/* ── Workflow Intelligence text — sits on top of the connected card block ── */
 .wt__workflow-overlay {
   position: absolute;
   top: 0;
   height: 100%;
-  background: #1a1409;
-  border-radius: 14px;
-  border: 1px solid rgba(201, 168, 76, 0.16);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.28);
   padding: 20px 22px;
   display: flex;
   flex-direction: column;
