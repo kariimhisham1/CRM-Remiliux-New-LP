@@ -189,8 +189,9 @@ export default function WhyTeams() {
           {/* ── STAGE ── */}
           <div className="wt__cards-stage" ref={stageRef}>
 
-            {/* Outer gold frame connecting both panels */}
+            
             <div className="wt__panel-frame" style={{ opacity: frameOpacity }} />
+            <div className="wt__panel-divider" style={{ left: rightX, opacity: frameOpacity }} />
 
             {/* 6 flipping + merging cards */}
             <div className="wt__cards">
