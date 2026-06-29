@@ -155,3 +155,27 @@
   letter-spacing: 0.08em; text-transform: uppercase; color: rgba(201,168,76,0.85);
   background: rgba(201,168,76,0.12); border-radius: 999px; padding: 3px 8px;
 }
+
+/* ── Live sliding marquee ── */
+.wt__marquee-wrapper {
+  overflow: hidden;
+  width: 100%;
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.wt__marquee-track {
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  animation: marquee-slide 28s linear infinite;
+}
+
+.wt__marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-slide {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
