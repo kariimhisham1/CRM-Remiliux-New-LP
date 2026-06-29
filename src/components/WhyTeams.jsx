@@ -211,8 +211,18 @@ export default function WhyTeams() {
 
                 const tx = dx * pullT;
                 const ty = dy * pullT;
-                const scaleX = lerp(1, sx, pullT);
-                const scaleY = lerp(1, sy, pullT);
+
+                // Mid-flight "landscape → portrait" flourish: peaks at the
+                // halfway point of the pull, fully resolves back to the exact
+                // target shape by the time the card lands — purely a flourish
+                // during the journey, never distorts the final flush shape.
+                const flourish = Math.sin(pullT * Math.PI);
+                const PORTRAIT_FLOURISH = 0.4;
+                const extraScaleX = 1 - flourish * PORTRAIT_FLOURISH;
+                const extraScaleY = 1 + flourish * PORTRAIT_FLOURISH;
+
+                const scaleX = lerp(1, sx, pullT) * extraScaleX;
+                const scaleY = lerp(1, sy, pullT) * extraScaleY;
 
                 // Only true outer corners of the merged block round toward the
                 // panel radius; every interior seam flattens to 0 as it connects.
