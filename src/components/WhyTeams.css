@@ -1,339 +1,305 @@
-import React, { useEffect, useRef, useState } from 'react';
-import './WhyTeams.css';
+/* ── Tall scroll wrapper ── */
+.wt {
+  height: 1500vh;
+  position: relative;
+}
 
-const SET_A = [
-  { icon: '📋', title: 'Lead Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '🔔', title: 'Smart Follow-Up Automation', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '💬', title: 'SMS Campaigns', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '✉️', title: 'Email Campaigns', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '📞', title: 'Voicemail Drops', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '📱', title: 'Dialpad Integration', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-];
-const SET_B = [
-  { icon: '⚙️', title: 'Pipeline Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '📅', title: 'Calendar Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '✅', title: 'Task Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '👥', title: 'Team Accountability', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '📊', title: 'Reporting & Analytics', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-  { icon: '📈', title: 'Deal Lifecycle Tracking', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
-];
-const STEPS = [
-  { icon: '🔔', title: 'Lead Arrives', desc: 'Via web form, ad, import, referral, or direct response captured instantly.' },
-  { icon: '💬', title: 'Text Sent', desc: 'AI-matched SMS is launched immediately with contextual personalization.' },
-  { icon: '✉️', title: 'Email Sent', desc: 'A branded email reinforces credibility and defines next best actions.' },
-  { icon: '📞', title: 'Voicemail Drop', desc: 'A smart voicemail is delivered when no response is detected.' },
-];
-const STATS = [
-  { label: 'Total delivery rate', value: '99.2%' },
-  { label: 'Email response uplift', value: '+47%' },
-  { label: 'Appointment recovery rate', value: '2.4x' },
-];
-const PILLS = [
-  { icon: '📱', label: 'Dialpad' },
-  { icon: '✉️', label: 'Email' },
-  { icon: '💬', label: 'SMS' },
-  { icon: '📅', label: 'Calendars' },
-  { icon: '📋', label: 'Lead Forms' },
-  { icon: '🔗', label: 'Zapier' },
-  { icon: '🏠', label: 'MLS' },
-  { icon: '📊', label: 'Analytics' },
-];
+/* ── Sticky viewport ── */
+.wt__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 28px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
 
-const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-const easeOut   = t => 1 - Math.pow(1-t, 3);
-const easeOut2  = t => 1 - Math.pow(1-t, 2);
-const clamp01   = n => Math.max(0, Math.min(1, n));
-const band      = (p, s, e) => clamp01((p-s)/(e-s));
+/* ── Frosted frame — larger ── */
+.wt__frame {
+  width: 100%;
+  max-width: 1260px;
+  background: rgba(250, 248, 244, 0.52);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 2px 48px rgba(120, 90, 50, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 40px 52px 36px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wt__frame--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-// ── Phase timing — slower flip (longer duration per card) ──
-const FLIP_S = 0.03, FLIP_STAGGER = 0.04, FLIP_DUR = 0.16; // slower flip
-const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.39
+/* ── Headers ── */
+.wt__header {
+  top: 40px;
+  left: 52px;
+  right: 52px;
+  transition: opacity 0.3s ease;
+}
+.wt__header-spacer {
+  height: 148px;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+.wt__eyebrow {
+  font-family: var(--font-body, sans-serif);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold, #C9A84C);
+  margin-bottom: 10px;
+}
+.wt__headline {
+  font-family: var(--font-display, serif);
+  font-size: clamp(24px, 2.8vw, 38px);
+  font-weight: 800;
+  color: #1a1509;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.wt__body {
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px;
+  line-height: 1.6;
+  color: #6b5c4a;
+  max-width: 480px;
+}
 
-const HEADER_S = 0.05, HEADER_E = 0.22;
+/* ── Stage ── */
+.wt__cards-stage {
+  position: relative;
+  height: clamp(360px, 46vh, 440px);
+  flex-shrink: 0;
+}
+.wt__cards {
+  position: absolute;
+  inset: 0;
+}
 
-const FADE_S = FLIP_E + 0.03, FADE_E = FADE_S + 0.07;
+/* ── Card scene ── */
+.wt__card-scene {
+  position: absolute;
+  will-change: transform;
+}
+.wt__card-flipper {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+  position: relative;
+}
+.wt__card {
+  position: absolute;
+  inset: 0;
+  background: #1e1810;
+  padding: 20px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+.wt__card--front { transform: rotateY(0deg); }
+.wt__card--back  { transform: rotateY(180deg); background: #231c0f; }
 
-// Cards merge to right panel
-const SHRINK_S = FLIP_E + 0.02, SHRINK_STAGGER = 0.022, SHRINK_DUR = 0.14;
-const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.67
+.wt__card-icon {
+  font-size: 17px;
+  margin-bottom: 10px;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.wt__card-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px; font-weight: 600;
+  color: #f5ead8; margin-bottom: 6px; line-height: 1.2;
+}
+.wt__card-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 11px; line-height: 1.5;
+  color: rgba(245, 234, 216, 0.40); margin: 0;
+}
 
-// Right panel text appears as cards form it
-const WF_S = SHRINK_S + 0.08, WF_E = SHRINK_E + 0.05;
+/* ── Workflow Intelligence overlay (right panel text) ── */
+.wt__workflow-overlay {
+  position: absolute;
+  top: 0; height: 100%;
+  padding: 28px 30px;
+  display: flex; flex-direction: column;
+  box-sizing: border-box;
+}
+.wt__workflow-eyebrow {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold, #C9A84C); margin-bottom: 12px;
+}
+.wt__workflow-headline {
+  font-family: var(--font-display, serif);
+  font-size: clamp(20px, 2.2vw, 30px);
+  font-weight: 700; color: #f5ead8;
+  line-height: 1.15; margin-bottom: 12px;
+}
+.wt__workflow-body {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px; line-height: 1.6;
+  color: rgba(245, 234, 216, 0.5); margin-bottom: 0;
+}
+.wt__stat-list { margin-top: auto; }
+.wt__stat-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid rgba(201, 168, 76, 0.14);
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px; color: rgba(245, 234, 216, 0.7);
+}
+.wt__stat-row strong { color: var(--gold, #C9A84C); font-weight: 700; }
 
-// Timeline curtain slides from RIGHT (behind right panel, reveals leftward)
-const TL_S = SHRINK_E + 0.03, TL_E = TL_S + 0.12;
+/* ── Premium outer frame wrapping BOTH panels ──
+   Matches image 2: thick rounded border, slight inset shadow,
+   gap between left/right handled by the panel backgrounds */
+.wt__panel-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  border: 1.5px solid rgba(201, 168, 76, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.35),
+    0 12px 56px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(201,168,76,0.08);
+  pointer-events: none;
+  z-index: 10;
+}
 
-// Frame border appears when both panels are ready
-const FRAME_S = TL_S + 0.02, FRAME_E = TL_E;
-
-// Integrations
-const INT_S = TL_E + 0.04, INT_E = INT_S + 0.07;
-const PILL_S = INT_S + 0.02, PILL_STAGGER = 0.015, PILL_DUR = 0.05;
-
-// Right panel takes 48% of stage width
-const RIGHT_FRAC = 0.48;
-
-export default function WhyTeams() {
-  const wrapRef  = useRef(null);
-  const stageRef = useRef(null);
-  const [progress, setProgress]     = useState(0);
-  const [bgProgress, setBgProgress] = useState(0);
-  const [frameVisible, setFrameVisible] = useState(false);
-  const [stageSize, setStageSize]   = useState({ w: 1104, h: 380 });
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (!wrapRef.current) return;
-      const rect = wrapRef.current.getBoundingClientRect();
-      const vh   = window.innerHeight;
-      const p    = clamp01(-rect.top / (rect.height - vh));
-      setProgress(p);
-      setBgProgress(clamp01((vh - rect.top) / (vh * 0.6)));
-      if (rect.top < vh * 0.9) setFrameVisible(true);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (!stageRef.current) return;
-    const ro = new ResizeObserver(([e]) => {
-      const { width, height } = e.contentRect;
-      if (width > 0) setStageSize({ w: width, h: height });
-    });
-    ro.observe(stageRef.current);
-    return () => ro.disconnect();
-  }, []);
-
-  const { w: SW, h: SH } = stageSize;
-
-  // Background
-  const bp = easeOut2(bgProgress);
-  const bgColor = `rgb(${Math.round(26+bp*170)},${Math.round(18+bp*152)},${Math.round(8+bp*135)})`;
-
-  // Header crossfade
-  const hFlip = easeInOut(band(progress, HEADER_S, HEADER_E));
-
-  // Card flips — slower
-  const cardFlips = SET_A.map((_, i) => {
-    const s = FLIP_S + i * FLIP_STAGGER;
-    return easeInOut(band(progress, s, s + FLIP_DUR));
-  });
-
-  // Content fades before shrink
-  const contentFade = 1 - easeOut(band(progress, FADE_S, FADE_E));
-
-  // Grid geometry
-  const GAP = 8, COLS = 3, ROWS = 2;
-  const cellW = (SW - (COLS-1)*GAP) / COLS;
-  const cellH = (SH - (ROWS-1)*GAP) / ROWS;
-
-  // Right panel target geometry — cards merge flush (no gaps)
-  const rightX = SW * (1 - RIGHT_FRAC);
-  const rightW = SW * RIGHT_FRAC;
-  const tgtW   = rightW / COLS;
-  const tgtH   = SH / ROWS;
-
-  const shrinkTs = SET_A.map((_, i) => {
-    const s = SHRINK_S + i * SHRINK_STAGGER;
-    return easeInOut(band(progress, s, s + SHRINK_DUR));
-  });
-
-  // Workflow text opacity
-  const wfOpacity = easeOut(band(progress, WF_S, WF_E));
-
-  // Timeline curtain: slides from RIGHT to LEFT (curtain effect)
-  // Starts hidden at translateX = its full width (off to the right behind right panel)
-  // Slides left to translateX = 0
-  const tlT      = easeOut(band(progress, TL_S, TL_E));
-  // clipPath reveals from right edge leftward — curtain wipe
-  const curtainReveal = tlT; // 0 = fully hidden, 1 = fully revealed
-  const tlWidth  = `${(1 - RIGHT_FRAC) * 100 - 0.5}%`;
-
-  // Combined frame opacity
-  const frameOpacity = easeOut(band(progress, FRAME_S, FRAME_E));
-
-  // Integrations
-  const intT    = easeOut(band(progress, INT_S, INT_E));
-  const intGrow = easeOut(band(progress, INT_S - 0.01, INT_S + 0.06));
-  const pillP   = i => easeOut(band(progress, PILL_S + i*PILL_STAGGER, PILL_S + i*PILL_STAGGER + PILL_DUR));
-
-  return (
-    <div className="wt" ref={wrapRef}>
-      <div className="wt__sticky" style={{ background: bgColor }}>
-        <div className={`wt__frame ${frameVisible ? 'wt__frame--visible' : ''}`}>
-
-          {/* Header A */}
-          <div className="wt__header" style={{
-            opacity: 1-hFlip, position:'absolute',
-            pointerEvents: hFlip > 0.9 ? 'none' : 'auto'
-          }}>
-            <div className="wt__eyebrow">Platform Capabilities</div>
-            <h2 className="wt__headline">Built for operators who need<br />control and conversion.</h2>
-            <p className="wt__body">Lead operations, communication, and follow-up — all in one system.</p>
-          </div>
-
-          {/* Header B */}
-          <div className="wt__header" style={{
-            opacity: hFlip, position:'absolute',
-            pointerEvents: hFlip < 0.1 ? 'none' : 'auto'
-          }}>
-            <div className="wt__eyebrow">Automation Engine</div>
-            <h2 className="wt__headline">A follow-up system that moves<br />with the urgency of the opportunity.</h2>
-            <p className="wt__body">Leads should not depend on memory. Remiliux orchestrates a disciplined chain of touch-points.</p>
-          </div>
-
-          <div className="wt__header-spacer" />
-
-          {/* ── STAGE ── */}
-          <div className="wt__cards-stage" ref={stageRef}>
-
-            
-            {/* Dark container card */}
-            <div className="wt__panels-bg" style={{ opacity: wfOpacity }} />
-            {/* Gold border frame */}
-            <div className="wt__panel-frame" style={{ opacity: frameOpacity }} />
-            <div className="wt__panel-divider" style={{ left: rightX, opacity: frameOpacity }} />
-
-            {/* 6 flipping + merging cards */}
-            <div className="wt__cards">
-              {SET_A.map((front, i) => {
-                const back    = SET_B[i];
-                const rotY    = cardFlips[i] * 180;
-                const shrink  = shrinkTs[i];
-                const col     = i % COLS;
-                const row     = Math.floor(i / COLS);
-
-                const startCX = col*(cellW+GAP) + cellW/2;
-                const startCY = row*(cellH+GAP) + cellH/2;
-                const tgtCX   = rightX + col*tgtW + tgtW/2;
-                const tgtCY   = row*tgtH + tgtH/2;
-
-                const cx = startCX + (tgtCX - startCX)*shrink;
-                const cy = startCY + (tgtCY - startCY)*shrink;
-                const cw = cellW   + (tgtW   - cellW)*shrink;
-                const ch = cellH   + (tgtH   - cellH)*shrink;
-
-                // Seam borders flatten to zero as cards merge
-                const isTop   = row === 0, isBot   = row === 1;
-                const isLeft  = col === 0, isRight = col === 2;
-                const outerR  = 12;
-                const seamR   = outerR * (1 - shrink);
-                const bTL = (isTop && isLeft)   ? outerR : seamR;
-                const bTR = (isTop && isRight)  ? outerR : seamR;
-                const bBL = (isBot && isLeft)   ? outerR : seamR;
-                const bBR = (isBot && isRight)  ? outerR : seamR;
-                const borderAlpha = 0.16 * (1 - shrink);
-
-                return (
-                  <div key={i} className="wt__card-scene" style={{
-                    left: cx - cw/2, top: cy - ch/2, width: cw, height: ch,
-                  }}>
-                    <div className="wt__card-flipper"
-                      style={{ transform: `perspective(1200px) rotateY(${rotY}deg)` }}>
-                      <div className="wt__card wt__card--front" style={{
-                        borderTopLeftRadius: bTL, borderTopRightRadius: bTR,
-                        borderBottomLeftRadius: bBL, borderBottomRightRadius: bBR,
-                        borderColor: `rgba(201,168,76,${borderAlpha})`,
-                      }}>
-                        <div className="wt__card-icon" style={{ opacity: contentFade }}>{front.icon}</div>
-                        <div className="wt__card-title" style={{ opacity: contentFade }}>{front.title}</div>
-                        <p className="wt__card-desc" style={{ opacity: contentFade }}>{front.desc}</p>
-                      </div>
-                      <div className="wt__card wt__card--back" style={{
-                        borderTopLeftRadius: bTL, borderTopRightRadius: bTR,
-                        borderBottomLeftRadius: bBL, borderBottomRightRadius: bBR,
-                        borderColor: `rgba(201,168,76,${borderAlpha})`,
-                      }}>
-                        <div className="wt__card-icon" style={{ opacity: contentFade }}>{back.icon}</div>
-                        <div className="wt__card-title" style={{ opacity: contentFade }}>{back.title}</div>
-                        <p className="wt__card-desc" style={{ opacity: contentFade }}>{back.desc}</p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Workflow Intelligence text — right panel */}
-            <div className="wt__workflow-overlay" style={{
-              left: rightX, width: rightW,
-              opacity: wfOpacity,
-              pointerEvents: wfOpacity > 0.5 ? 'auto' : 'none',
-            }}>
-              <div className="wt__workflow-eyebrow">Workflow Intelligence</div>
-              <h3 className="wt__workflow-headline">
-                Multi-channel automation,<br />managed like an asset.
-              </h3>
-              <p className="wt__workflow-body">
-                The automation layer protects a premium system of control sequences, time
-                windows, response routing, and appointment creation with zero manual lift.
-              </p>
-              <div className="wt__stat-list">
-                {STATS.map((s, i) => (
-                  <div className="wt__stat-row" key={i}>
-                    <span>{s.label}</span><strong>{s.value}</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Timeline panel — curtain wipe from right edge leftward */}
-            <div className="wt__timeline-panel" style={{
-              width: tlWidth,
-              opacity: Math.min(1, curtainReveal * 3), // fade in fast at start
-              // Curtain: clip from right side, revealing leftward
-              clipPath: `inset(0 ${(1 - curtainReveal) * 100}% 0 0)`,
-              pointerEvents: curtainReveal > 0.8 ? 'auto' : 'none',
-            }}>
-              {STEPS.map((s, i) => (
-                <div className="wt__timeline-step" key={i}>
-                  <div className="wt__timeline-icon">{s.icon}</div>
-                  <div className="wt__timeline-copy">
-                    <div className="wt__timeline-steplabel">STEP {i+1}</div>
-                    <div className="wt__timeline-title">{s.title}</div>
-                    <p className="wt__timeline-desc">{s.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>{/* end stage */}
-
-          {/* Integrations */}
-          <div className="wt__integrations" style={{
-            maxHeight: `${intGrow * 200}px`,
-            marginTop: `${intGrow * 14}px`,
-            opacity: intT,
-            transform: `translateY(${(1-intT)*16}px)`,
-          }}>
-            <div className="wt__eyebrow" style={{ marginBottom: 6 }}>Connected Systems</div>
-            <h3 className="wt__integrations-headline">
-              Integrations that fit the stack serious<br />acquisition teams already use.
-            </h3>
-            <p className="wt__integrations-body">
-              The ecosystem is deliberately presented as enterprise-grade infrastructure,
-              not a patchwork of plugins. Each connection extends the operating system.
-            </p>
-            <div className="wt__pills">
-              {PILLS.map((p, i) => {
-                const ps = pillP(i);
-                return (
-                  <div key={i} className="wt__pill" style={{
-                    opacity: ps, transform: `translateX(${(1-ps)*-28}px)`,
-                  }}>
-                    <span className="wt__pill-icon">{p.icon}</span>
-                    <span className="wt__pill-label">{p.label}</span>
-                    <span className="wt__pill-tag">Native</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
+/* ── Vertical divider between panels ── */
+.wt__panel-divider {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(201,168,76,0.2) 20%,
+    rgba(201,168,76,0.2) 80%,
+    transparent
   );
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* ── Timeline panel — curtain from right ── */
+.wt__timeline-panel {
+  position: absolute;
+  left: 0; top: 0; height: 100%;
+  background: #1a1409;
+  border-radius: 16px 0 0 16px;
+  border: none;
+  padding: 24px 28px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+.wt__timeline-step {
+  display: flex; gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+}
+.wt__timeline-step:last-child { border-bottom: none; }
+.wt__timeline-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+  background: rgba(201, 168, 76, 0.06);
+}
+.wt__timeline-steplabel {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold, #C9A84C); margin-bottom: 3px;
+}
+.wt__timeline-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 14px; font-weight: 700;
+  color: #f5ead8; margin-bottom: 3px;
+}
+.wt__timeline-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 11.5px; line-height: 1.5;
+  color: rgba(245, 234, 216, 0.5); margin: 0;
+}
+
+/* ── Integrations ── */
+.wt__integrations {
+  flex-shrink: 0; overflow: hidden;
+}
+.wt__integrations-headline {
+  font-family: var(--font-display, serif);
+  font-size: clamp(18px, 2vw, 24px); font-weight: 700;
+  color: #1a1509; line-height: 1.18; margin-bottom: 6px;
+}
+.wt__integrations-body {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px; line-height: 1.55;
+  color: #6b5c4a; max-width: 560px; margin-bottom: 14px;
+}
+.wt__pills {
+  display: flex; gap: 10px;
+  overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
+}
+.wt__pills::-webkit-scrollbar { display: none; }
+.wt__pill {
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+  background: #1a1409;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 999px; padding: 10px 16px; white-space: nowrap;
+}
+.wt__pill-icon { font-size: 14px; }
+.wt__pill-label {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px; font-weight: 600; color: #f5ead8;
+}
+.wt__pill-tag {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.85);
+  background: rgba(201, 168, 76, 0.12);
+  border-radius: 999px; padding: 3px 8px;
+}
+
+/* ── Dark container card wrapping BOTH panels — sits behind everything ── */
+.wt__panels-bg {
+  position: absolute;
+  inset: 0;
+  background: #16120a;
+  border-radius: 18px;
+  box-shadow:
+    0 16px 64px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(201,168,76,0.22);
+  z-index: 0;
 }
