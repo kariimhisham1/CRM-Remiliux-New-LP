@@ -208,13 +208,16 @@
   z-index: 11;
 }
 
-/* ── Timeline panel — curtain from right ── */
+/* ── Timeline panel ──
+   Previously slid in as a curtain wipe from the right; now the panel
+   background simply fades in (see wt__timeline-panel opacity in JSX),
+   and the 4 steps inside reveal one at a time. Border-radius is no longer
+   asymmetric since there's no mid-wipe shape to account for. */
 .wt__timeline-panel {
   position: absolute;
   left: 0; top: 0; height: 100%;
   background: #1a1409;
-  border-radius: 16px 0 0 16px;
-  border: none;
+  border-radius: 16px;
   padding: 24px 28px;
   box-sizing: border-box;
   overflow: hidden;
@@ -222,10 +225,32 @@
   flex-direction: column;
   justify-content: space-evenly;
 }
+
+/* Animated connector line — sits behind the icon column, grows downward
+   in sync with each step's reveal (driven by lineGrowth in JSX). */
+.wt__timeline-line-track {
+  position: absolute;
+  left: 43px; /* centers on the 32px icon circles (28px panel padding + 16px - 1px) */
+  top: 40px;
+  bottom: 40px;
+  width: 1px;
+  background: rgba(201, 168, 76, 0.12);
+}
+.wt__timeline-line-fill {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  background: rgba(201, 168, 76, 0.55);
+  transition: height 0.05s linear;
+}
+
 .wt__timeline-step {
   display: flex; gap: 16px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+  position: relative;
+  z-index: 1; /* sits above the connector line */
+  will-change: transform, opacity;
 }
 .wt__timeline-step:last-child { border-bottom: none; }
 .wt__timeline-icon {
