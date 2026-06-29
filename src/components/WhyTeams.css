@@ -291,3 +291,15 @@
   background: rgba(201, 168, 76, 0.12);
   border-radius: 999px; padding: 3px 8px;
 }
+
+/* ── Dark container card wrapping BOTH panels — sits behind everything ── */
+.wt__panels-bg {
+  position: absolute;
+  inset: 0;
+  background: #16120a;
+  border-radius: 18px;
+  box-shadow:
+    0 16px 64px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(201,168,76,0.22);
+  z-index: 0;
+}
