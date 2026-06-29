@@ -41,50 +41,49 @@ const PILLS = [
   { icon: '🗄️', label: 'Database' },
 ];
 
-/* ───────────────────────────────────────────────────────────
-   TIMELINE — every phase end is derived from the previous one
-   plus an explicit pause, so transitions can't drift or overlap.
-
-   intro hold → flip → PAUSE → crossfade to panel → PAUSE →
-   timeline slide → PAUSE → integrations + pills → PAUSE (final)
-   ─────────────────────────────────────────────────────────── */
 const easeInOut = t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 const easeOut = t => 1 - Math.pow(1 - t, 2.5);
 const clamp01 = n => Math.max(0, Math.min(1, n));
 const band = (p, start, end) => clamp01((p - start) / (end - start));
+const lerp = (a, b, t) => a + (b - a) * t;
 
+/* ── Timeline: each phase end derives from the previous + a pause ── */
 const HEADER_START = 0.04, HEADER_END = 0.15;
 
 const FLIP_START = 0.05, FLIP_STAGGER = 0.026, FLIP_DUR = 0.09;
-const FLIP_END = FLIP_START + 5 * FLIP_STAGGER + FLIP_DUR;          // ~0.275
+const FLIP_END = FLIP_START + 5 * FLIP_STAGGER + FLIP_DUR;            // ~0.275
 
 const PAUSE_1 = 0.07;
-const CROSSFADE_START = FLIP_END + PAUSE_1;                          // ~0.345
-const CROSSFADE_DUR = 0.12;
-const CROSSFADE_END = CROSSFADE_START + CROSSFADE_DUR;              // ~0.465
+const MERGE_START = FLIP_END + PAUSE_1;                                // ~0.345
+const MERGE_STAGGER = 0.022, MERGE_DUR = 0.13;
+const MERGE_END = MERGE_START + 5 * MERGE_STAGGER + MERGE_DUR;        // ~0.585
 
 const PAUSE_2 = 0.06;
-const TIMELINE_START = CROSSFADE_END + PAUSE_2;                      // ~0.525
+const TIMELINE_START = MERGE_END + PAUSE_2;                            // ~0.645
 const TIMELINE_DUR = 0.11;
-const TIMELINE_END = TIMELINE_START + TIMELINE_DUR;                  // ~0.635
+const TIMELINE_END = TIMELINE_START + TIMELINE_DUR;                   // ~0.755
 
 const PAUSE_3 = 0.05;
-const INT_START = TIMELINE_END + PAUSE_3;                            // ~0.685
+const INT_START = TIMELINE_END + PAUSE_3;                              // ~0.805
 const INT_HEAD_DUR = 0.05;
-const INT_HEAD_END = INT_START + INT_HEAD_DUR;                       // ~0.735
+const INT_HEAD_END = INT_START + INT_HEAD_DUR;
 
-const PILL_START = INT_START + 0.03;                                 // ~0.715
-const PILL_STAGGER = 0.018, PILL_DUR = 0.06;
-// last pill finishes ~0.865 — rest of the scroll is a generous final pause.
+const PILL_START = INT_START + 0.03;
+const PILL_STAGGER = 0.016, PILL_DUR = 0.05;
 
-const RIGHT_X = 51, RIGHT_W = 49;  // workflow panel rect
-const LEFT_W = 49;                 // timeline panel rect (mirrors RIGHT)
+/* ── Geometry: where the 6 cards merge into, in fractions of stage size ── */
+const RIGHT_X_FRAC = 0.52, RIGHT_W_FRAC = 0.48;
+const LEFT_W_FRAC = 0.49;
+const COL_GAP_PX = 10, ROW_GAP_PX = 10;
+const CARD_RADIUS = 12, PANEL_RADIUS = 14;
 
 export default function WhyTeams() {
   const wrapRef = useRef(null);
+  const stageRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [bgProgress, setBgProgress] = useState(0);
   const [frameVisible, setFrameVisible] = useState(false);
+  const [stageSize, setStageSize] = useState({ w: 1100, h: 360 });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -105,6 +104,20 @@ export default function WhyTeams() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Measure the stage in real pixels so the pull/scale math is exact —
+  // not approximated through CSS percentage composition.
+  useEffect(() => {
+    if (!stageRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      if (width > 0 && height > 0) setStageSize({ w: width, h: height });
+    });
+    ro.observe(stageRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  const { w: stageW, h: stageH } = stageSize;
+
   /* ---------- Background morph ---------- */
   const bp = easeOut(bgProgress);
   const bgColor = `rgb(${Math.round(26 + bp * 170)},${Math.round(18 + bp * 152)},${Math.round(8 + bp * 135)})`;
@@ -120,15 +133,27 @@ export default function WhyTeams() {
     return easeInOut(band(progress, start, start + FLIP_DUR));
   });
 
-  /* ---------- Phase 2: simple crossfade from cards-grid to panel ---------- */
-  const crossfadeT = easeOut(band(progress, CROSSFADE_START, CROSSFADE_END));
-  const cardsOpacity = 1 - crossfadeT;
-  const workflowOpacity = crossfadeT;
+  /* ---------- Phase 2: cards pull right and connect ---------- */
+  const startW = (stageW - 2 * COL_GAP_PX) / 3;
+  const startH = (stageH - ROW_GAP_PX) / 2;
+  const rightX = stageW * RIGHT_X_FRAC;
+  const rightW = stageW * RIGHT_W_FRAC;
+  const endW = rightW / 3;
+  const endH = stageH / 2;
 
-  /* ---------- Phase 3: timeline panel slides in from the left ---------- */
+  const pullTs = SET_A.map((_, i) => {
+    const start = MERGE_START + i * MERGE_STAGGER;
+    return easeInOut(band(progress, start, start + MERGE_DUR));
+  });
+  const maxPullT = Math.max(...pullTs, 0);
+
+  // Panel text fades in once the cards have essentially finished connecting.
+  const wfTextOpacity = easeOut(band(progress, MERGE_END - 0.07, MERGE_END + 0.03));
+
+  /* ---------- Phase 3: timeline panel slides in from the RIGHT ---------- */
   const timelineT = easeOut(band(progress, TIMELINE_START, TIMELINE_END));
   const timelineOpacity = timelineT;
-  const timelineTranslateX = (1 - timelineT) * -48;
+  const timelineTranslateX = (1 - timelineT) * 64; // starts shifted right, settles at 0
 
   /* ---------- Phase 4: integrations heading + pills ---------- */
   const intHeadT = easeOut(band(progress, INT_START, INT_HEAD_END));
@@ -165,29 +190,76 @@ export default function WhyTeams() {
 
           <div className="wt__header-spacer" />
 
-          {/* ---------- Stage: cards-grid crossfades straight into the two panels ---------- */}
-          <div className="wt__cards-stage">
+          <div className="wt__cards-stage" ref={stageRef}>
 
-            {/* PHASE 1: the 6 flipping cards, normal CSS grid — fades out for phase 2 */}
-            <div
-              className="wt__cards"
-              style={{ opacity: cardsOpacity, pointerEvents: cardsOpacity > 0.05 ? 'auto' : 'none' }}
-            >
+            <div className="wt__cards">
               {SET_A.map((frontCard, i) => {
                 const backCard = SET_B[i];
                 const rotateY = cardFlips[i] * 180;
+                const pullT = pullTs[i];
+
+                const col = i % 3, row = Math.floor(i / 3);
+                const sx = startW > 0 ? endW / startW : 1;
+                const sy = startH > 0 ? endH / startH : 1;
+
+                const startCenterX = col * (startW + COL_GAP_PX) + startW / 2;
+                const startCenterY = row * (startH + ROW_GAP_PX) + startH / 2;
+                const endCenterX = rightX + col * endW + endW / 2;
+                const endCenterY = row * endH + endH / 2;
+                const dx = endCenterX - startCenterX;
+                const dy = endCenterY - startCenterY;
+
+                const tx = dx * pullT;
+                const ty = dy * pullT;
+                const scaleX = lerp(1, sx, pullT);
+                const scaleY = lerp(1, sy, pullT);
+
+                // Only true outer corners of the merged block round toward the
+                // panel radius; every interior seam flattens to 0 as it connects.
+                const isTop = row === 0, isBottom = row === 1;
+                const isLeftCol = col === 0, isRightCol = col === 2;
+                const flat = lerp(CARD_RADIUS, 0, pullT);
+                const outer = lerp(CARD_RADIUS, PANEL_RADIUS, pullT);
+
+                const contentOpacity = 1 - clamp01(pullT / 0.6);
+                const seamAlpha = 0.16 * (1 - pullT);
+                const shadowAlpha = 0.25 * (1 - pullT * 0.8);
+
+                const corners = {
+                  borderTopLeftRadius: isTop && isLeftCol ? outer : flat,
+                  borderTopRightRadius: isTop && isRightCol ? outer : flat,
+                  borderBottomLeftRadius: isBottom && isLeftCol ? outer : flat,
+                  borderBottomRightRadius: isBottom && isRightCol ? outer : flat,
+                };
+
                 return (
-                  <div key={i} className="wt__card-scene">
+                  <div
+                    key={i}
+                    className="wt__card-scene"
+                    style={{
+                      left: `${col * (startW + COL_GAP_PX)}px`,
+                      top: `${row * (startH + ROW_GAP_PX)}px`,
+                      width: `${startW}px`,
+                      height: `${startH}px`,
+                      transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scaleX}, ${scaleY})`,
+                    }}
+                  >
                     <div className="wt__card-flipper" style={{ transform: `perspective(900px) rotateY(${rotateY}deg)` }}>
-                      <div className="wt__card wt__card--front">
-                        <div className="wt__card-icon">{frontCard.icon}</div>
-                        <div className="wt__card-title">{frontCard.title}</div>
-                        <p className="wt__card-desc">{frontCard.desc}</p>
+                      <div
+                        className="wt__card wt__card--front"
+                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: `0 4px 20px rgba(0,0,0,${shadowAlpha})` }}
+                      >
+                        <div className="wt__card-icon" style={{ opacity: contentOpacity }}>{frontCard.icon}</div>
+                        <div className="wt__card-title" style={{ opacity: contentOpacity }}>{frontCard.title}</div>
+                        <p className="wt__card-desc" style={{ opacity: contentOpacity }}>{frontCard.desc}</p>
                       </div>
-                      <div className="wt__card wt__card--back">
-                        <div className="wt__card-icon">{backCard.icon}</div>
-                        <div className="wt__card-title">{backCard.title}</div>
-                        <p className="wt__card-desc">{backCard.desc}</p>
+                      <div
+                        className="wt__card wt__card--back"
+                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: `0 4px 20px rgba(0,0,0,${shadowAlpha})` }}
+                      >
+                        <div className="wt__card-icon" style={{ opacity: contentOpacity }}>{backCard.icon}</div>
+                        <div className="wt__card-title" style={{ opacity: contentOpacity }}>{backCard.title}</div>
+                        <p className="wt__card-desc" style={{ opacity: contentOpacity }}>{backCard.desc}</p>
                       </div>
                     </div>
                   </div>
@@ -195,14 +267,14 @@ export default function WhyTeams() {
               })}
             </div>
 
-            {/* PHASE 2: Workflow Intelligence panel — fades in as the cards fade out */}
+            {/* Workflow Intelligence text — fades in on top of the connected cards */}
             <div
               className="wt__workflow-overlay"
               style={{
-                left: `${RIGHT_X}%`,
-                width: `${RIGHT_W}%`,
-                opacity: workflowOpacity,
-                pointerEvents: workflowOpacity > 0.5 ? 'auto' : 'none',
+                left: `${RIGHT_X_FRAC * 100}%`,
+                width: `${RIGHT_W_FRAC * 100}%`,
+                opacity: wfTextOpacity,
+                pointerEvents: wfTextOpacity > 0.5 ? 'auto' : 'none',
               }}
             >
               <div className="wt__workflow-eyebrow">Workflow Intelligence</div>
@@ -221,11 +293,11 @@ export default function WhyTeams() {
               </div>
             </div>
 
-            {/* PHASE 3: Timeline panel — its own element, slides in from the left */}
+            {/* Timeline panel — own element, now slides in from the RIGHT */}
             <div
               className="wt__timeline-panel"
               style={{
-                width: `${LEFT_W}%`,
+                width: `${LEFT_W_FRAC * 100}%`,
                 opacity: timelineOpacity,
                 transform: `translateX(${timelineTranslateX}px)`,
                 pointerEvents: timelineOpacity > 0.5 ? 'auto' : 'none',
@@ -244,8 +316,7 @@ export default function WhyTeams() {
             </div>
           </div>
 
-          {/* PHASE 4: Connected Systems heading + integration pills.
-              maxHeight grows from 0 so it doesn't reserve empty space earlier. */}
+          {/* PHASE 4: Connected Systems heading + integration pills */}
           <div
             className="wt__integrations"
             style={{
