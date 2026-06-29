@@ -9,7 +9,6 @@ const SET_A = [
   { icon: '📞', title: 'Voicemail Drops', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
   { icon: '📱', title: 'Dialpad Integration', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
 ];
-
 const SET_B = [
   { icon: '⚙️', title: 'Pipeline Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
   { icon: '📅', title: 'Calendar Management', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
@@ -18,20 +17,17 @@ const SET_B = [
   { icon: '📊', title: 'Reporting & Analytics', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
   { icon: '📈', title: 'Deal Lifecycle Tracking', desc: 'Command the workflow with less manual overhead and better accountability from first touch to signed contract.' },
 ];
-
 const STEPS = [
   { icon: '🔔', title: 'Lead Arrives', desc: 'Via web form, ad, import, referral, or direct response captured instantly.' },
   { icon: '💬', title: 'Text Sent', desc: 'AI-matched SMS is launched immediately with contextual personalization.' },
   { icon: '✉️', title: 'Email Sent', desc: 'A branded email reinforces credibility and defines next best actions.' },
   { icon: '📞', title: 'Voicemail Drop', desc: 'A smart voicemail is delivered when no response is detected.' },
 ];
-
 const STATS = [
   { label: 'Total delivery rate', value: '99.2%' },
   { label: 'Email response uplift', value: '+47%' },
   { label: 'Appointment recovery rate', value: '2.4x' },
 ];
-
 const PILLS = [
   { icon: '📱', label: 'Dialpad' },
   { icon: '✉️', label: 'Email' },
@@ -49,36 +45,41 @@ const easeOut2  = t => 1 - Math.pow(1-t, 2);
 const clamp01   = n => Math.max(0, Math.min(1, n));
 const band      = (p, s, e) => clamp01((p-s)/(e-s));
 
-// ── Phase timing ──────────────────────────────────────────
-const FLIP_S = 0.04, FLIP_STAGGER = 0.025, FLIP_DUR = 0.09;
-const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;       // ~0.26
+// ── Phase timing — slower flip (longer duration per card) ──
+const FLIP_S = 0.03, FLIP_STAGGER = 0.04, FLIP_DUR = 0.16; // slower flip
+const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.39
 
-const HEADER_S = FLIP_S, HEADER_E = FLIP_E;
+const HEADER_S = 0.05, HEADER_E = 0.22;
 
-// Cards fade out their labels as they shrink — start fading at merge begin
-const FADE_S = FLIP_E + 0.04, FADE_E = FADE_S + 0.08;
+const FADE_S = FLIP_E + 0.03, FADE_E = FADE_S + 0.07;
 
-// Cards shrink toward right panel area
-const SHRINK_S = FLIP_E + 0.03, SHRINK_STAGGER = 0.018, SHRINK_DUR = 0.12;
-const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.50
+// Cards merge to right panel
+const SHRINK_S = FLIP_E + 0.02, SHRINK_STAGGER = 0.022, SHRINK_DUR = 0.14;
+const SHRINK_E = SHRINK_S + 5*SHRINK_STAGGER + SHRINK_DUR; // ~0.67
 
-// Right panel (workflow) fades in as cards form it
-const WF_S = SHRINK_S + 0.06, WF_E = SHRINK_E + 0.04;
+// Right panel text appears as cards form it
+const WF_S = SHRINK_S + 0.08, WF_E = SHRINK_E + 0.05;
 
-// Timeline slides in from LEFT after cards have formed right panel
-const TL_S = SHRINK_E + 0.04, TL_E = TL_S + 0.10;
+// Timeline curtain slides from RIGHT (behind right panel, reveals leftward)
+const TL_S = SHRINK_E + 0.03, TL_E = TL_S + 0.12;
 
-// Integration section
-const INT_S = TL_E + 0.05, INT_E = INT_S + 0.08;
+// Frame border appears when both panels are ready
+const FRAME_S = TL_S + 0.02, FRAME_E = TL_E;
+
+// Integrations
+const INT_S = TL_E + 0.04, INT_E = INT_S + 0.07;
 const PILL_S = INT_S + 0.02, PILL_STAGGER = 0.015, PILL_DUR = 0.05;
+
+// Right panel takes 48% of stage width
+const RIGHT_FRAC = 0.48;
 
 export default function WhyTeams() {
   const wrapRef  = useRef(null);
   const stageRef = useRef(null);
-  const [progress, setProgress]   = useState(0);
+  const [progress, setProgress]     = useState(0);
   const [bgProgress, setBgProgress] = useState(0);
   const [frameVisible, setFrameVisible] = useState(false);
-  const [stageSize, setStageSize] = useState({ w: 1012, h: 360 });
+  const [stageSize, setStageSize]   = useState({ w: 1104, h: 380 });
 
   useEffect(() => {
     const onScroll = () => {
@@ -107,48 +108,51 @@ export default function WhyTeams() {
 
   const { w: SW, h: SH } = stageSize;
 
-  // Background morph
+  // Background
   const bp = easeOut2(bgProgress);
   const bgColor = `rgb(${Math.round(26+bp*170)},${Math.round(18+bp*152)},${Math.round(8+bp*135)})`;
 
   // Header crossfade
   const hFlip = easeInOut(band(progress, HEADER_S, HEADER_E));
 
-  // Card flip (phase 1)
+  // Card flips — slower
   const cardFlips = SET_A.map((_, i) => {
     const s = FLIP_S + i * FLIP_STAGGER;
     return easeInOut(band(progress, s, s + FLIP_DUR));
   });
 
-  // Card content fade out before shrink
+  // Content fades before shrink
   const contentFade = 1 - easeOut(band(progress, FADE_S, FADE_E));
 
-  // Card geometry
-  const GAP = 8;
-  const COLS = 3, ROWS = 2;
+  // Grid geometry
+  const GAP = 8, COLS = 3, ROWS = 2;
   const cellW = (SW - (COLS-1)*GAP) / COLS;
   const cellH = (SH - (ROWS-1)*GAP) / ROWS;
 
-  // RIGHT panel = right 48% of stage
-  const RIGHT_FRAC = 0.48;
-  const rightX     = SW * (1 - RIGHT_FRAC);
-  const rightW     = SW * RIGHT_FRAC;
-  // Each card's target: stack 3×2 inside the right panel area, zero gaps (flush)
-  const tgtW = rightW / COLS;
-  const tgtH = SH / ROWS;
+  // Right panel target geometry — cards merge flush (no gaps)
+  const rightX = SW * (1 - RIGHT_FRAC);
+  const rightW = SW * RIGHT_FRAC;
+  const tgtW   = rightW / COLS;
+  const tgtH   = SH / ROWS;
 
   const shrinkTs = SET_A.map((_, i) => {
     const s = SHRINK_S + i * SHRINK_STAGGER;
     return easeInOut(band(progress, s, s + SHRINK_DUR));
   });
 
-  // Workflow Intelligence panel opacity
+  // Workflow text opacity
   const wfOpacity = easeOut(band(progress, WF_S, WF_E));
 
-  // Timeline panel slides in from LEFT
-  const tlT       = easeOut(band(progress, TL_S, TL_E));
-  const tlOpacity = tlT;
-  const tlSlide   = (1 - tlT) * -56; // starts -56px left, slides to 0
+  // Timeline curtain: slides from RIGHT to LEFT (curtain effect)
+  // Starts hidden at translateX = its full width (off to the right behind right panel)
+  // Slides left to translateX = 0
+  const tlT      = easeOut(band(progress, TL_S, TL_E));
+  // clipPath reveals from right edge leftward — curtain wipe
+  const curtainReveal = tlT; // 0 = fully hidden, 1 = fully revealed
+  const tlWidth  = `${(1 - RIGHT_FRAC) * 100 - 0.5}%`;
+
+  // Combined frame opacity
+  const frameOpacity = easeOut(band(progress, FRAME_S, FRAME_E));
 
   // Integrations
   const intT    = easeOut(band(progress, INT_S, INT_E));
@@ -161,14 +165,20 @@ export default function WhyTeams() {
         <div className={`wt__frame ${frameVisible ? 'wt__frame--visible' : ''}`}>
 
           {/* Header A */}
-          <div className="wt__header" style={{ opacity: 1-hFlip, position:'absolute', pointerEvents: hFlip>0.9?'none':'auto' }}>
+          <div className="wt__header" style={{
+            opacity: 1-hFlip, position:'absolute',
+            pointerEvents: hFlip > 0.9 ? 'none' : 'auto'
+          }}>
             <div className="wt__eyebrow">Platform Capabilities</div>
             <h2 className="wt__headline">Built for operators who need<br />control and conversion.</h2>
             <p className="wt__body">Lead operations, communication, and follow-up — all in one system.</p>
           </div>
 
           {/* Header B */}
-          <div className="wt__header" style={{ opacity: hFlip, position:'absolute', pointerEvents: hFlip<0.1?'none':'auto' }}>
+          <div className="wt__header" style={{
+            opacity: hFlip, position:'absolute',
+            pointerEvents: hFlip < 0.1 ? 'none' : 'auto'
+          }}>
             <div className="wt__eyebrow">Automation Engine</div>
             <h2 className="wt__headline">A follow-up system that moves<br />with the urgency of the opportunity.</h2>
             <p className="wt__body">Leads should not depend on memory. Remiliux orchestrates a disciplined chain of touch-points.</p>
@@ -179,56 +189,45 @@ export default function WhyTeams() {
           {/* ── STAGE ── */}
           <div className="wt__cards-stage" ref={stageRef}>
 
-            {/* 6 flipping + shrinking cards */}
+            {/* Outer gold frame connecting both panels */}
+            <div className="wt__panel-frame" style={{ opacity: frameOpacity }} />
+
+            {/* 6 flipping + merging cards */}
             <div className="wt__cards">
               {SET_A.map((front, i) => {
-                const back   = SET_B[i];
-                const rotY   = cardFlips[i] * 180;
-                const shrink = shrinkTs[i];
+                const back    = SET_B[i];
+                const rotY    = cardFlips[i] * 180;
+                const shrink  = shrinkTs[i];
+                const col     = i % COLS;
+                const row     = Math.floor(i / COLS);
 
-                const col = i % COLS, row = Math.floor(i / COLS);
-                // Start position (centre of cell)
                 const startCX = col*(cellW+GAP) + cellW/2;
                 const startCY = row*(cellH+GAP) + cellH/2;
-                // Target position (centre in right panel)
-                const tgtCX = rightX + col*tgtW + tgtW/2;
-                const tgtCY = row*tgtH + tgtH/2;
+                const tgtCX   = rightX + col*tgtW + tgtW/2;
+                const tgtCY   = row*tgtH + tgtH/2;
 
                 const cx = startCX + (tgtCX - startCX)*shrink;
                 const cy = startCY + (tgtCY - startCY)*shrink;
-                const cw = cellW  + (tgtW - cellW)*shrink;
-                const ch = cellH  + (tgtH - cellH)*shrink;
+                const cw = cellW   + (tgtW   - cellW)*shrink;
+                const ch = cellH   + (tgtH   - cellH)*shrink;
 
-                // Corner radii: outer corners keep radius, inner seams go to 0
-                const isTop  = row === 0, isBot = row === 1;
-                const isLeft = col === 0, isRight = col === 2;
-                const outerR = 12;
-                const innerR = outerR * (1-shrink); // seams flatten to 0
-                const outerCurr = outerR; // outer corners stay rounded
-
-                const bTL = (isTop  && isLeft)  ? outerCurr : innerR;
-                const bTR = (isTop  && isRight) ? outerCurr : innerR;
-                const bBL = (isBot  && isLeft)  ? outerCurr : innerR;
-                const bBR = (isBot  && isRight) ? outerCurr : innerR;
-
-                // Border between adjacent cells fades to 0 as they merge
-                const borderAlpha = 0.16 * (1 - shrink) + 0.0 * shrink;
+                // Seam borders flatten to zero as cards merge
+                const isTop   = row === 0, isBot   = row === 1;
+                const isLeft  = col === 0, isRight = col === 2;
+                const outerR  = 12;
+                const seamR   = outerR * (1 - shrink);
+                const bTL = (isTop && isLeft)   ? outerR : seamR;
+                const bTR = (isTop && isRight)  ? outerR : seamR;
+                const bBL = (isBot && isLeft)   ? outerR : seamR;
+                const bBR = (isBot && isRight)  ? outerR : seamR;
+                const borderAlpha = 0.16 * (1 - shrink);
 
                 return (
-                  <div
-                    key={i}
-                    className="wt__card-scene"
-                    style={{
-                      left:   cx - cw/2,
-                      top:    cy - ch/2,
-                      width:  cw,
-                      height: ch,
-                    }}
-                  >
+                  <div key={i} className="wt__card-scene" style={{
+                    left: cx - cw/2, top: cy - ch/2, width: cw, height: ch,
+                  }}>
                     <div className="wt__card-flipper"
-                      style={{ transform: `perspective(900px) rotateY(${rotY}deg)` }}>
-
-                      {/* Front */}
+                      style={{ transform: `perspective(1200px) rotateY(${rotY}deg)` }}>
                       <div className="wt__card wt__card--front" style={{
                         borderTopLeftRadius: bTL, borderTopRightRadius: bTR,
                         borderBottomLeftRadius: bBL, borderBottomRightRadius: bBR,
@@ -238,8 +237,6 @@ export default function WhyTeams() {
                         <div className="wt__card-title" style={{ opacity: contentFade }}>{front.title}</div>
                         <p className="wt__card-desc" style={{ opacity: contentFade }}>{front.desc}</p>
                       </div>
-
-                      {/* Back */}
                       <div className="wt__card wt__card--back" style={{
                         borderTopLeftRadius: bTL, borderTopRightRadius: bTR,
                         borderBottomLeftRadius: bBL, borderBottomRightRadius: bBR,
@@ -249,14 +246,13 @@ export default function WhyTeams() {
                         <div className="wt__card-title" style={{ opacity: contentFade }}>{back.title}</div>
                         <p className="wt__card-desc" style={{ opacity: contentFade }}>{back.desc}</p>
                       </div>
-
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* ── Workflow Intelligence overlay (RIGHT panel text) ── */}
+            {/* Workflow Intelligence text — right panel */}
             <div className="wt__workflow-overlay" style={{
               left: rightX, width: rightW,
               opacity: wfOpacity,
@@ -271,7 +267,7 @@ export default function WhyTeams() {
                 windows, response routing, and appointment creation with zero manual lift.
               </p>
               <div className="wt__stat-list">
-                {STATS.map((s,i) => (
+                {STATS.map((s, i) => (
                   <div className="wt__stat-row" key={i}>
                     <span>{s.label}</span><strong>{s.value}</strong>
                   </div>
@@ -279,12 +275,13 @@ export default function WhyTeams() {
               </div>
             </div>
 
-            {/* ── Timeline panel (LEFT) — slides in from left AFTER cards form right panel ── */}
+            {/* Timeline panel — curtain wipe from right edge leftward */}
             <div className="wt__timeline-panel" style={{
-              width: `${(1-RIGHT_FRAC)*100 - 1}%`,
-              opacity: tlOpacity,
-              transform: `translateX(${tlSlide}px)`,
-              pointerEvents: tlOpacity > 0.4 ? 'auto' : 'none',
+              width: tlWidth,
+              opacity: Math.min(1, curtainReveal * 3), // fade in fast at start
+              // Curtain: clip from right side, revealing leftward
+              clipPath: `inset(0 ${(1 - curtainReveal) * 100}% 0 0)`,
+              pointerEvents: curtainReveal > 0.8 ? 'auto' : 'none',
             }}>
               {STEPS.map((s, i) => (
                 <div className="wt__timeline-step" key={i}>
@@ -300,12 +297,12 @@ export default function WhyTeams() {
 
           </div>{/* end stage */}
 
-          {/* ── Phase 4: Integrations ── */}
+          {/* Integrations */}
           <div className="wt__integrations" style={{
             maxHeight: `${intGrow * 200}px`,
-            marginTop: `${intGrow * 16}px`,
+            marginTop: `${intGrow * 14}px`,
             opacity: intT,
-            transform: `translateY(${(1-intT)*18}px)`,
+            transform: `translateY(${(1-intT)*16}px)`,
           }}>
             <div className="wt__eyebrow" style={{ marginBottom: 6 }}>Connected Systems</div>
             <h3 className="wt__integrations-headline">
@@ -320,8 +317,7 @@ export default function WhyTeams() {
                 const ps = pillP(i);
                 return (
                   <div key={i} className="wt__pill" style={{
-                    opacity: ps,
-                    transform: `translateX(${(1-ps)*-32}px)`,
+                    opacity: ps, transform: `translateX(${(1-ps)*-28}px)`,
                   }}>
                     <span className="wt__pill-icon">{p.icon}</span>
                     <span className="wt__pill-label">{p.label}</span>
