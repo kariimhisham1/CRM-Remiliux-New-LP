@@ -16,7 +16,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(16px, 6vh, 64px) 28px clamp(6px, 1vh, 14px);
+  /* Symmetric top/bottom padding so the frame centers evenly in the
+     viewport — previously top padding was much larger than bottom,
+     pushing the frame up against the navbar with a large gap left
+     underneath instead of an even gap on both sides. */
+  padding: clamp(16px, 3.5vh, 56px) 28px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -126,8 +130,8 @@
   -webkit-backface-visibility: hidden;
   overflow: hidden;
 }
-.wt__card--front { transform: rotateY(0deg); }
-.wt__card--back  { transform: rotateY(180deg); background: #19130a; }
+.wt__card--front { transform: rotateX(0deg); }
+.wt__card--back  { transform: rotateX(180deg); background: #19130a; }
 
 .wt__card-icon {
   font-size: 17px;
