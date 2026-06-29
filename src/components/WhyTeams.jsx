@@ -51,6 +51,9 @@ const PILLS = [
    ─────────────────────────────────────────────────────────── */
 const easeInOut = t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 const easeOut = t => 1 - Math.pow(1 - t, 2.5);
+// Magnetic snap: barely moves at first, accelerates hard into the lock —
+// no ease-out softening at the end, so it reads as snapping into place.
+const magnetEase = t => t * t * t * t;
 const clamp01 = n => Math.max(0, Math.min(1, n));
 const band = (p, start, end) => clamp01((p - start) / (end - start));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -62,8 +65,9 @@ const FLIP_END = FLIP_START + 5 * FLIP_STAGGER + FLIP_DUR;          // ~0.275
 
 const PAUSE_1 = 0.07;
 const MERGE_START = FLIP_END + PAUSE_1;                              // ~0.345
-const MERGE_STAGGER = 0.02, MERGE_DUR = 0.10;
-const MERGE_SHAPE_END = MERGE_START + 5 * MERGE_STAGGER + MERGE_DUR; // ~0.545
+const MERGE_STAGGER = 0.034, MERGE_DUR = 0.11;                       // diagonal-ripple timing
+const MERGE_DIAG_MAX = 3;                                            // max(row+col) across the 3x2 grid
+const MERGE_SHAPE_END = MERGE_START + MERGE_DIAG_MAX * MERGE_STAGGER + MERGE_DUR; // ~0.557
 
 const PAUSE_2 = 0.06;
 const TIMELINE_START = MERGE_SHAPE_END + PAUSE_2;                     // ~0.605
@@ -84,6 +88,10 @@ const COL_GAP = 1.3, ROW_GAP = 2.6;          // % gaps in the ORIGINAL 3x2 grid
 const RIGHT_X = 51, RIGHT_W = 49;            // target rect the cards merge into
 const LEFT_W = 49;                           // timeline panel's rect (mirror of RIGHT)
 const CARD_RADIUS = 12, PANEL_RADIUS = 14;
+
+// Diagonal ripple order: top-left card (row+col=0) merges first,
+// rippling outward to the bottom-right card (row+col=3) last.
+const diagIndex = i => Math.floor(i / 3) + (i % 3);
 
 function cardGeometry(i, shapeT) {
   const col = i % 3, row = Math.floor(i / 3);
@@ -161,10 +169,19 @@ export default function WhyTeams() {
 
   /* ---------- Phase 2: cards merge into one vertical panel ---------- */
   const shapeTs = SET_A.map((_, i) => {
-    const start = MERGE_START + i * MERGE_STAGGER;
-    return easeInOut(band(progress, start, start + MERGE_DUR));
+    const start = MERGE_START + diagIndex(i) * MERGE_STAGGER;
+    return magnetEase(band(progress, start, start + MERGE_DUR));
   });
   const maxShapeT = Math.max(...shapeTs, 0);
+
+  // Snap-impact flash: a brief gold glow right as each card locks into
+  // place, timed off the diagonal ripple groups (cards sharing a diagonal
+  // lock at the same moment).
+  const lockPulses = SET_A.map((_, i) => {
+    const start = MERGE_START + diagIndex(i) * MERGE_STAGGER;
+    const lockAt = start + MERGE_DUR;
+    return clamp01(1 - Math.abs(progress - lockAt) / 0.035);
+  });
 
   // Workflow text fades in on top of the merged shape only once it has
   // essentially finished assembling — content swap reads as "complete."
@@ -221,8 +238,11 @@ export default function WhyTeams() {
                 const geo = cardGeometry(i, shapeT);
                 const corners = cardCorners(i, shapeT);
                 const contentOpacity = 1 - easeInOut(clamp01((shapeT - 0.5) / 0.5));
-                const seamAlpha = 0.16 * (1 - shapeT);
+                const pulse = lockPulses[i];
+                const seamAlpha = Math.max(0.16 * (1 - shapeT), pulse * 0.85);
                 const shadowAlpha = 0.25 * (1 - shapeT * 0.8);
+                const glowAlpha = pulse * 0.75;
+                const boxShadowCombined = `0 4px 20px rgba(0,0,0,${shadowAlpha}), 0 0 ${pulse * 16}px rgba(201,168,76,${glowAlpha})`;
 
                 return (
                   <div
@@ -238,7 +258,7 @@ export default function WhyTeams() {
                     <div className="wt__card-flipper" style={{ transform: `perspective(900px) rotateY(${rotateY}deg)` }}>
                       <div
                         className="wt__card wt__card--front"
-                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: `0 4px 20px rgba(0,0,0,${shadowAlpha})` }}
+                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: boxShadowCombined }}
                       >
                         <div className="wt__card-icon" style={{ opacity: contentOpacity }}>{frontCard.icon}</div>
                         <div className="wt__card-title" style={{ opacity: contentOpacity }}>{frontCard.title}</div>
@@ -246,7 +266,7 @@ export default function WhyTeams() {
                       </div>
                       <div
                         className="wt__card wt__card--back"
-                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: `0 4px 20px rgba(0,0,0,${shadowAlpha})` }}
+                        style={{ ...corners, borderColor: `rgba(201,168,76,${seamAlpha})`, boxShadow: boxShadowCombined }}
                       >
                         <div className="wt__card-icon" style={{ opacity: contentOpacity }}>{backCard.icon}</div>
                         <div className="wt__card-title" style={{ opacity: contentOpacity }}>{backCard.title}</div>
