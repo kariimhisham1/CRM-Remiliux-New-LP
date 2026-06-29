@@ -44,6 +44,10 @@ const easeOut   = t => 1 - Math.pow(1-t, 3);
 const easeOut2  = t => 1 - Math.pow(1-t, 2);
 const clamp01   = n => Math.max(0, Math.min(1, n));
 const band      = (p, s, e) => clamp01((p-s)/(e-s));
+// Mirrors CSS clamp(min, Nvh, max): scales with viewport height but never
+// goes below min or above max. Used for the integrations block sizing,
+// which is animated via inline styles rather than a CSS clamp().
+const clampVH   = (min, vhFrac, max, vh) => Math.max(min, Math.min(max, vhFrac/100 * vh));
 
 // ── Phase timing ──
 // Card flips and the merge-shrink are tightened slightly (vs. the previous
@@ -81,6 +85,12 @@ const PILL_S = INT_S + 0.02, PILL_STAGGER = 0.015, PILL_DUR = 0.05;
 // Right panel takes 48% of stage width
 const RIGHT_FRAC = 0.48;
 
+// Visible gap between the outer lighter frame (.wt__panels-bg) and the two
+// inner dark panels, and the gap between the two inner panels themselves —
+// matches the target design's "frame holding two cards" look.
+const STAGE_INSET = 14;
+const PANEL_GAP   = 14;
+
 export default function WhyTeams() {
   const wrapRef  = useRef(null);
   const stageRef = useRef(null);
@@ -88,6 +98,10 @@ export default function WhyTeams() {
   const [bgProgress, setBgProgress] = useState(0);
   const [frameVisible, setFrameVisible] = useState(false);
   const [stageSize, setStageSize]   = useState({ w: 1104, h: 380 });
+  // Tracks viewport height so the header spacer, stage, and integrations
+  // block can scale down on short browser windows instead of overflowing
+  // the sticky 100vh container (see clampVH helper below).
+  const [viewportH, setViewportH]   = useState(900);
 
   useEffect(() => {
     const onScroll = () => {
@@ -97,11 +111,16 @@ export default function WhyTeams() {
       const p    = clamp01(-rect.top / (rect.height - vh));
       setProgress(p);
       setBgProgress(clamp01((vh - rect.top) / (vh * 0.6)));
+      setViewportH(vh);
       if (rect.top < vh * 0.9) setFrameVisible(true);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -132,16 +151,31 @@ export default function WhyTeams() {
   // Content fades before shrink
   const contentFade = 1 - easeOut(band(progress, FADE_S, FADE_E));
 
+  // Inner working rect — inset from the outer .wt__panels-bg frame so a
+  // visible lighter "frame" border shows around the two dark panels,
+  // matching the target design. Everything below (card grid, right panel,
+  // timeline panel) is computed relative to this inset rect, not the raw
+  // stage bounds, so the merged cards and the panel CSS always agree.
+  const innerX = STAGE_INSET;
+  const innerY = STAGE_INSET;
+  const innerW = Math.max(0, SW - STAGE_INSET * 2);
+  const innerH = Math.max(0, SH - STAGE_INSET * 2);
+
+  // Split the inset rect into: left timeline panel | gap | right panel.
+  // Both panel widths are derived from the same innerW so they always sum
+  // correctly with no overlap and no touching at the gap.
+  const tlPanelW = innerW * (1 - RIGHT_FRAC) - PANEL_GAP / 2;
+  const rightW   = innerW * RIGHT_FRAC - PANEL_GAP / 2;
+  const rightX   = innerX + tlPanelW + PANEL_GAP;
+
   // Grid geometry
   const GAP = 8, COLS = 3, ROWS = 2;
-  const cellW = (SW - (COLS-1)*GAP) / COLS;
-  const cellH = (SH - (ROWS-1)*GAP) / ROWS;
+  const cellW = (innerW - (COLS-1)*GAP) / COLS;
+  const cellH = (innerH - (ROWS-1)*GAP) / ROWS;
 
-  // Right panel target geometry — cards merge flush (no gaps)
-  const rightX = SW * (1 - RIGHT_FRAC);
-  const rightW = SW * RIGHT_FRAC;
+  // Right panel target geometry — cards merge flush (no gaps) into rightW
   const tgtW   = rightW / COLS;
-  const tgtH   = SH / ROWS;
+  const tgtH   = innerH / ROWS;
 
   const shrinkTs = SET_A.map((_, i) => {
     const s = SHRINK_S + i * SHRINK_STAGGER;
@@ -153,7 +187,6 @@ export default function WhyTeams() {
 
   // Timeline panel background — fades in as a flat reveal (no more curtain wipe)
   const tlBgOpacity = easeOut(band(progress, TL_BG_S, TL_BG_E));
-  const tlWidth  = `${(1 - RIGHT_FRAC) * 100 - 0.5}%`;
 
   // Each timeline step reveals on its own staggered band: fade + slide up
   const stepP = i => easeOut(band(progress, TL_STEP_S + i*TL_STEP_STAGGER, TL_STEP_S + i*TL_STEP_STAGGER + TL_STEP_DUR));
@@ -202,11 +235,10 @@ export default function WhyTeams() {
           <div className="wt__cards-stage" ref={stageRef}>
 
             
-            {/* Dark container card */}
+            {/* Outer lighter frame — shows through the gap between the two dark panels */}
             <div className="wt__panels-bg" style={{ opacity: wfOpacity }} />
             {/* Gold border frame */}
             <div className="wt__panel-frame" style={{ opacity: frameOpacity }} />
-            <div className="wt__panel-divider" style={{ left: rightX, opacity: frameOpacity }} />
 
             {/* 6 flipping + merging cards */}
             <div className="wt__cards">
@@ -217,10 +249,10 @@ export default function WhyTeams() {
                 const col     = i % COLS;
                 const row     = Math.floor(i / COLS);
 
-                const startCX = col*(cellW+GAP) + cellW/2;
-                const startCY = row*(cellH+GAP) + cellH/2;
+                const startCX = innerX + col*(cellW+GAP) + cellW/2;
+                const startCY = innerY + row*(cellH+GAP) + cellH/2;
                 const tgtCX   = rightX + col*tgtW + tgtW/2;
-                const tgtCY   = row*tgtH + tgtH/2;
+                const tgtCY   = innerY + row*tgtH + tgtH/2;
 
                 const cx = startCX + (tgtCX - startCX)*shrink;
                 const cy = startCY + (tgtCY - startCY)*shrink;
@@ -270,7 +302,7 @@ export default function WhyTeams() {
 
             {/* Workflow Intelligence text — right panel */}
             <div className="wt__workflow-overlay" style={{
-              left: rightX, width: rightW,
+              left: rightX, width: rightW, top: innerY, height: innerH,
               opacity: wfOpacity,
               pointerEvents: wfOpacity > 0.5 ? 'auto' : 'none',
             }}>
@@ -293,7 +325,7 @@ export default function WhyTeams() {
 
             {/* Timeline panel — background fades in, then each step reveals in sequence */}
             <div className="wt__timeline-panel" style={{
-              width: tlWidth,
+              left: innerX, top: innerY, width: tlPanelW, height: innerH,
               opacity: tlBgOpacity,
               pointerEvents: tlBgOpacity > 0.8 ? 'auto' : 'none',
             }}>
@@ -324,8 +356,8 @@ export default function WhyTeams() {
 
           {/* Integrations */}
           <div className="wt__integrations" style={{
-            maxHeight: `${intGrow * 200}px`,
-            marginTop: `${intGrow * 14}px`,
+            maxHeight: `${intGrow * clampVH(120, 20, 200, viewportH)}px`,
+            marginTop: `${intGrow * clampVH(8, 1.3, 14, viewportH)}px`,
             opacity: intT,
             transform: `translateY(${(1-intT)*16}px)`,
           }}>
