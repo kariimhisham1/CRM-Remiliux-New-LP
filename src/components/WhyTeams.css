@@ -175,6 +175,13 @@
   font-size: 13px; color: rgba(245, 234, 216, 0.7);
 }
 .wt__stat-row strong { color: var(--gold, #C9A84C); font-weight: 700; }
+/* Closing rule under the last stat row, matching the target screenshot */
+.wt__stat-list::after {
+  content: '';
+  display: block;
+  margin-top: 12px;
+  border-top: 1px solid rgba(201, 168, 76, 0.14);
+}
 
 /* ── Premium outer frame wrapping BOTH panels ──
    Matches image 2: thick rounded border, slight inset shadow,
@@ -208,13 +215,12 @@
   z-index: 11;
 }
 
-/* ── Timeline panel — curtain from right ── */
+/* ── Timeline panel ── */
 .wt__timeline-panel {
   position: absolute;
   left: 0; top: 0; height: 100%;
   background: #1a1409;
-  border-radius: 16px 0 0 16px;
-  border: none;
+  border-radius: 16px;
   padding: 24px 28px;
   box-sizing: border-box;
   overflow: hidden;
@@ -222,10 +228,31 @@
   flex-direction: column;
   justify-content: space-evenly;
 }
+
+/* Animated connector line — sits behind the icon column, grows downward */
+.wt__timeline-line-track {
+  position: absolute;
+  left: 43px; /* centers on the 32px icon circles (28px panel padding + 16px - 1px) */
+  top: 40px;
+  bottom: 40px;
+  width: 1px;
+  background: rgba(201, 168, 76, 0.12);
+}
+.wt__timeline-line-fill {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  background: rgba(201, 168, 76, 0.55);
+  transition: height 0.05s linear;
+}
+
 .wt__timeline-step {
   display: flex; gap: 16px;
   padding: 10px 0;
   border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+  position: relative;
+  z-index: 1;
+  will-change: transform, opacity;
 }
 .wt__timeline-step:last-child { border-bottom: none; }
 .wt__timeline-icon {
@@ -233,8 +260,9 @@
   border-radius: 50%;
   border: 1px solid rgba(201, 168, 76, 0.4);
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0;
-  background: rgba(201, 168, 76, 0.06);
+  flex-shrink: 0;
+  background: #1a1409;
+  color: var(--gold, #C9A84C);
 }
 .wt__timeline-steplabel {
   font-family: var(--font-body, sans-serif);
