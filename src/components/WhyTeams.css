@@ -12,7 +12,7 @@
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-radius: 24px; border: 1px solid rgba(255,255,255,0.45);
   box-shadow: 0 2px 48px rgba(120,90,50,0.13), inset 0 1px 0 rgba(255,255,255,0.6);
-  padding: 32px 52px 28px; position: relative;
+  padding: 24px 44px 20px; position: relative;
   display: flex; flex-direction: column;
   opacity: 0; transform: translateY(60px);
   transition: opacity 0.75s cubic-bezier(0.22,1,0.36,1), transform 0.75s cubic-bezier(0.22,1,0.36,1);
@@ -20,21 +20,21 @@
 .wt__frame--visible { opacity: 1; transform: translateY(0); }
 
 .wt__header { top: 40px; left: 52px; right: 52px; transition: opacity 0.3s ease; }
-.wt__header-spacer { height: 128px; margin-bottom: 16px; flex-shrink: 0; }
+.wt__header-spacer { height: 100px; margin-bottom: 12px; flex-shrink: 0; }
 
 .wt__eyebrow {
   font-family: var(--font-body, sans-serif); font-size: 10px; font-weight: 600;
   letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold, #C9A84C); margin-bottom: 10px;
 }
 .wt__headline {
-  font-family: var(--font-display, serif); font-size: clamp(24px, 2.8vw, 38px);
+  font-family: var(--font-display, serif); font-size: clamp(20px, 2.2vw, 28px);
   font-weight: 800; color: #1a1509; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 8px;
 }
 .wt__body { font-family: var(--font-body, sans-serif); font-size: 13px; line-height: 1.6; color: #6b5c4a; max-width: 480px; }
 
 /* ── Stage ── */
 .wt__cards-stage {
-  position: relative; height: clamp(300px, 38vh, 370px); flex-shrink: 0;
+  position: relative; height: clamp(240px, 30vh, 300px); flex-shrink: 0;
 }
 .wt__cards { position: absolute; inset: 0; }
 
@@ -63,7 +63,7 @@
 .wt__panels-bg {
   position: absolute; inset: 0;
   background: #131009;
-  border-radius: 20px;
+  border-radius: 16px;
   border: 1px solid rgba(201,168,76,0.28);
   box-shadow: 0 20px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.5);
   z-index: 1; pointer-events: none;
@@ -71,24 +71,24 @@
 
 /* ── LEFT inner panel card ── */
 .wt__timeline-panel {
-  position: absolute; left: 12px; top: 12px; bottom: 12px;
+  position: absolute; left: 8px; top: 8px; bottom: 8px;
   background: #1a1409;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid rgba(201,168,76,0.18);
-  padding: 28px 28px;
+  padding: 16px 20px;
   box-sizing: border-box; overflow: hidden;
   display: flex; flex-direction: column; justify-content: space-evenly;
   z-index: 2;
 }
 .wt__timeline-step {
-  display: flex; gap: 16px; padding: 10px 0;
+  display: flex; gap: 12px; padding: 7px 0;
   border-bottom: 1px solid rgba(201,168,76,0.1);
   /* entry animation */
   will-change: transform, opacity;
 }
 .wt__timeline-step:last-child { border-bottom: none; }
 .wt__timeline-icon {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   border: 1px solid rgba(201,168,76,0.4);
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; flex-shrink: 0; background: rgba(201,168,76,0.06);
@@ -97,16 +97,16 @@
   font-family: var(--font-body, sans-serif); font-size: 9px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold, #C9A84C); margin-bottom: 3px;
 }
-.wt__timeline-title { font-family: var(--font-body, sans-serif); font-size: 14px; font-weight: 700; color: #f5ead8; margin-bottom: 3px; }
+.wt__timeline-title { font-family: var(--font-body, sans-serif); font-size: 12px; font-weight: 700; color: #f5ead8; margin-bottom: 2px; }
 .wt__timeline-desc  { font-family: var(--font-body, sans-serif); font-size: 11.5px; line-height: 1.5; color: rgba(245,234,216,0.5); margin: 0; }
 
 /* ── RIGHT inner panel card ── */
 .wt__workflow-overlay {
-  position: absolute; top: 12px; bottom: 12px; right: 12px;
+  position: absolute; top: 8px; bottom: 8px; right: 8px;
   background: #1e1a0f;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid rgba(201,168,76,0.18);
-  padding: 28px 30px;
+  padding: 16px 22px;
   display: flex; flex-direction: column;
   box-sizing: border-box; overflow: hidden;
   z-index: 2;
@@ -116,7 +116,7 @@
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold, #C9A84C); margin-bottom: 12px;
 }
 .wt__workflow-headline {
-  font-family: var(--font-display, serif); font-size: clamp(22px, 2.4vw, 32px);
+  font-family: var(--font-display, serif); font-size: clamp(16px, 1.8vw, 22px);
   font-weight: 700; color: #f5ead8; line-height: 1.15; margin-bottom: 12px;
 }
 .wt__workflow-body {
@@ -126,7 +126,7 @@
 .wt__stat-list { margin-top: auto; }
 .wt__stat-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 0; border-top: 1px solid rgba(201,168,76,0.14);
+  padding: 8px 0; border-top: 1px solid rgba(201,168,76,0.14);
   font-family: var(--font-body, sans-serif); font-size: 13px; color: rgba(245,234,216,0.7);
 }
 .wt__stat-row strong { color: var(--gold, #C9A84C); font-weight: 700; }
