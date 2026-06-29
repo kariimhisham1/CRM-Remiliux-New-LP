@@ -12,24 +12,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 72px 32px 20px;
+  padding: 72px 28px 16px;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-/* ── Frosted frame — bigger ── */
+/* ── Frosted frame — larger ── */
 .wt__frame {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1260px;
   background: rgba(250, 248, 244, 0.52);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-radius: 22px;
+  border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.45);
   box-shadow:
     0 2px 48px rgba(120, 90, 50, 0.13),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 36px 48px 40px;
+  padding: 40px 52px 36px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -45,14 +45,14 @@
 
 /* ── Headers ── */
 .wt__header {
-  top: 36px;
-  left: 48px;
-  right: 48px;
+  top: 40px;
+  left: 52px;
+  right: 52px;
   transition: opacity 0.3s ease;
 }
 .wt__header-spacer {
-  height: 136px;
-  margin-bottom: 20px;
+  height: 148px;
+  margin-bottom: 24px;
   flex-shrink: 0;
 }
 .wt__eyebrow {
@@ -66,7 +66,7 @@
 }
 .wt__headline {
   font-family: var(--font-display, serif);
-  font-size: clamp(24px, 2.8vw, 36px);
+  font-size: clamp(24px, 2.8vw, 38px);
   font-weight: 800;
   color: #1a1509;
   line-height: 1.1;
@@ -81,10 +81,10 @@
   max-width: 480px;
 }
 
-/* ── Stage — taller to fill frame better ── */
+/* ── Stage ── */
 .wt__cards-stage {
   position: relative;
-  height: clamp(340px, 44vh, 420px);
+  height: clamp(360px, 46vh, 440px);
   flex-shrink: 0;
 }
 .wt__cards {
@@ -144,97 +144,112 @@
 .wt__workflow-overlay {
   position: absolute;
   top: 0; height: 100%;
-  padding: 24px 26px;
+  padding: 28px 30px;
   display: flex; flex-direction: column;
   box-sizing: border-box;
-  /* sits on top of the merged card block */
 }
 .wt__workflow-eyebrow {
   font-family: var(--font-body, sans-serif);
   font-size: 9px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--gold, #C9A84C); margin-bottom: 10px;
+  color: var(--gold, #C9A84C); margin-bottom: 12px;
 }
 .wt__workflow-headline {
   font-family: var(--font-display, serif);
-  font-size: clamp(18px, 2vw, 26px);
+  font-size: clamp(20px, 2.2vw, 30px);
   font-weight: 700; color: #f5ead8;
-  line-height: 1.15; margin-bottom: 10px;
+  line-height: 1.15; margin-bottom: 12px;
 }
 .wt__workflow-body {
   font-family: var(--font-body, sans-serif);
-  font-size: 11.5px; line-height: 1.6;
+  font-size: 12px; line-height: 1.6;
   color: rgba(245, 234, 216, 0.5); margin-bottom: 0;
 }
 .wt__stat-list { margin-top: auto; }
 .wt__stat-row {
   display: flex; align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 12px 0;
   border-top: 1px solid rgba(201, 168, 76, 0.14);
   font-family: var(--font-body, sans-serif);
-  font-size: 12px; color: rgba(245, 234, 216, 0.7);
+  font-size: 13px; color: rgba(245, 234, 216, 0.7);
 }
 .wt__stat-row strong { color: var(--gold, #C9A84C); font-weight: 700; }
 
-/* ── Combined outer frame for both panels ── */
+/* ── Premium outer frame wrapping BOTH panels ──
+   Matches image 2: thick rounded border, slight inset shadow,
+   gap between left/right handled by the panel backgrounds */
 .wt__panel-frame {
   position: absolute;
   inset: 0;
-  border-radius: 16px;
-  border: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 18px;
+  border: 1.5px solid rgba(201, 168, 76, 0.35);
   box-shadow:
-    0 8px 48px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.04);
+    0 0 0 1px rgba(0,0,0,0.35),
+    0 12px 56px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(201,168,76,0.08);
   pointer-events: none;
   z-index: 10;
 }
 
-/* ── Timeline panel — curtain slides from behind right panel ── */
+/* ── Vertical divider between panels ── */
+.wt__panel-divider {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(201,168,76,0.2) 20%,
+    rgba(201,168,76,0.2) 80%,
+    transparent
+  );
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* ── Timeline panel — curtain from right ── */
 .wt__timeline-panel {
   position: absolute;
   left: 0; top: 0; height: 100%;
   background: #1a1409;
-  border-radius: 14px 0 0 14px;
-  border: 1px solid rgba(201, 168, 76, 0.2);
-  border-right: none;
-  padding: 20px 24px;
+  border-radius: 16px 0 0 16px;
+  border: none;
+  padding: 24px 28px;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  /* clips to stay behind right panel until fully revealed */
-  transform-origin: right center;
 }
 .wt__timeline-step {
-  display: flex; gap: 14px;
-  padding: 9px 0;
+  display: flex; gap: 16px;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(201, 168, 76, 0.1);
 }
 .wt__timeline-step:last-child { border-bottom: none; }
 .wt__timeline-icon {
-  width: 30px; height: 30px;
+  width: 32px; height: 32px;
   border-radius: 50%;
   border: 1px solid rgba(201, 168, 76, 0.4);
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; flex-shrink: 0;
+  font-size: 14px; flex-shrink: 0;
   background: rgba(201, 168, 76, 0.06);
 }
 .wt__timeline-steplabel {
   font-family: var(--font-body, sans-serif);
   font-size: 9px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--gold, #C9A84C); margin-bottom: 2px;
+  color: var(--gold, #C9A84C); margin-bottom: 3px;
 }
 .wt__timeline-title {
   font-family: var(--font-body, sans-serif);
-  font-size: 13px; font-weight: 700;
+  font-size: 14px; font-weight: 700;
   color: #f5ead8; margin-bottom: 3px;
 }
 .wt__timeline-desc {
   font-family: var(--font-body, sans-serif);
-  font-size: 11px; line-height: 1.45;
+  font-size: 11.5px; line-height: 1.5;
   color: rgba(245, 234, 216, 0.5); margin: 0;
 }
 
@@ -275,8 +290,4 @@
   color: rgba(201, 168, 76, 0.85);
   background: rgba(201, 168, 76, 0.12);
   border-radius: 999px; padding: 3px 8px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .wt__card-flipper, .wt__timeline-panel, .wt__pill { transition: none !important; }
 }
