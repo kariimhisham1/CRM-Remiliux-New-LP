@@ -156,7 +156,7 @@ export default function WhyTeams() {
   });
 
   // Left panel width (matches space left of right panel, minus outer padding)
-  const tlWidth = `${(1 - RIGHT_FRAC) * 100 - 1}%`;
+  const tlWidth = `${(1 - RIGHT_FRAC) * 100 - 0.5}%`;
 
   // Integrations
   const intT    = easeOut(band(progress, INT_S, INT_E));
@@ -245,7 +245,7 @@ export default function WhyTeams() {
 
             {/* 3. Right panel — Workflow Intelligence text */}
             <div className="wt__workflow-overlay" style={{
-              left: rightX, width: rightW - 12,
+              left: rightX, width: rightW - 8,
               opacity: wfOpacity,
               pointerEvents: wfOpacity > 0.5 ? 'auto' : 'none',
             }}>
