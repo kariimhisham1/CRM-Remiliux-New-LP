@@ -29,7 +29,7 @@
   box-shadow:
     0 2px 48px rgba(120, 90, 50, 0.13),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 36px 48px 32px;
+  padding: 36px 48px 40px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -51,8 +51,8 @@
   transition: opacity 0.3s ease;
 }
 .wt__header-spacer {
-  height: 116px;
-  margin-bottom: 12px;
+  height: 136px;
+  margin-bottom: 20px;
   flex-shrink: 0;
 }
 .wt__eyebrow {
