@@ -190,6 +190,9 @@ export default function WhyTeams() {
           <div className="wt__cards-stage" ref={stageRef}>
 
             
+            {/* Dark container card */}
+            <div className="wt__panels-bg" style={{ opacity: wfOpacity }} />
+            {/* Gold border frame */}
             <div className="wt__panel-frame" style={{ opacity: frameOpacity }} />
             <div className="wt__panel-divider" style={{ left: rightX, opacity: frameOpacity }} />
 
