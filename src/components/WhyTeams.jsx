@@ -294,10 +294,9 @@ export default function WhyTeams() {
 
           {/* Integrations — live marquee */}
           <div className="wt__integrations" style={{
-            maxHeight: `${intGrow * 180}px`,
-            marginTop: `${intGrow * 14}px`,
+            marginTop: '16px',
             opacity: intT,
-            transform: `translateY(${(1-intT)*16}px)`,
+            transform: `translateY(${(1 - intT) * 16}px)`,
           }}>
             <div className="wt__eyebrow" style={{ marginBottom: 6 }}>Connected Systems</div>
             <h3 className="wt__integrations-headline">
