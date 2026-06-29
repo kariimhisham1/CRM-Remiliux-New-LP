@@ -111,11 +111,12 @@ const band      = (p, s, e) => clamp01((p-s)/(e-s));
 const clampVH   = (min, vhFrac, max, vh) => Math.max(min, Math.min(max, vhFrac/100 * vh));
 
 // ── Phase timing ──
-// Card flips and the merge-shrink are tightened slightly (vs. the previous
-// version) to make room in the 0–1 scroll budget for the new sequential
-// timeline-step reveal below, without pushing integrations/pills past 1.0.
-const FLIP_S = 0.03, FLIP_STAGGER = 0.028, FLIP_DUR = 0.11;
-const FLIP_E = FLIP_S + 5*FLIP_STAGGER + FLIP_DUR;         // ~0.28
+// Cards flip row-by-row: all 3 top-row cards flip together, then once
+// that's fully done, all 3 bottom-row cards flip together. Stagger equals
+// the flip duration so row 2 starts the instant row 1 finishes — no
+// overlap, no gap. (Previously each of the 6 cards staggered individually.)
+const FLIP_S = 0.03, FLIP_DUR = 0.13, FLIP_ROW_STAGGER = FLIP_DUR;
+const FLIP_E = FLIP_S + 1*FLIP_ROW_STAGGER + FLIP_DUR;     // ~0.29 (row 2 start + its duration)
 
 const HEADER_S = 0.05, HEADER_E = 0.22;
 
@@ -202,9 +203,12 @@ export default function WhyTeams() {
   // Header crossfade
   const hFlip = easeInOut(band(progress, HEADER_S, HEADER_E));
 
-  // Card flips
+  // Card flips — staggered by ROW, not by individual card: all 3 cards in
+  // a row share the same timing band, so the top row fully completes its
+  // flip before the bottom row begins (per the 3-column grid: row = i/3).
   const cardFlips = SET_A.map((_, i) => {
-    const s = FLIP_S + i * FLIP_STAGGER;
+    const row = Math.floor(i / 3);
+    const s = FLIP_S + row * FLIP_ROW_STAGGER;
     return easeInOut(band(progress, s, s + FLIP_DUR));
   });
 
@@ -303,7 +307,7 @@ export default function WhyTeams() {
             <div className="wt__cards">
               {SET_A.map((front, i) => {
                 const back    = SET_B[i];
-                const rotY    = cardFlips[i] * 180;
+                const rotX    = cardFlips[i] * 180;
                 const shrink  = shrinkTs[i];
                 const col     = i % COLS;
                 const row     = Math.floor(i / COLS);
@@ -334,7 +338,7 @@ export default function WhyTeams() {
                     left: cx - cw/2, top: cy - ch/2, width: cw, height: ch,
                   }}>
                     <div className="wt__card-flipper"
-                      style={{ transform: `perspective(1200px) rotateY(${rotY}deg)` }}>
+                      style={{ transform: `perspective(1200px) rotateX(${rotX}deg)` }}>
                       <div className="wt__card wt__card--front" style={{
                         borderTopLeftRadius: bTL, borderTopRightRadius: bTR,
                         borderBottomLeftRadius: bBL, borderBottomRightRadius: bBR,
