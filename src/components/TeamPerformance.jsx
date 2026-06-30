@@ -76,16 +76,15 @@ export default function TeamPerformance() {
 
   useEffect(() => {
     if (!sectionRef.current) return;
-    // One-time scroll-into-view trigger (not scroll-jacked) — once the
-    // card's container is ~35% visible, kick off the fall animation and
-    // disconnect; it never re-triggers on scroll-up, matching a normal
-    // page entrance rather than a scrubbable scroll animation.
+    // Re-triggering scroll-into-view animation (not scroll-jacked): the
+    // card resets and falls again every time the section becomes visible,
+    // including scrolling back up past it and back down. Leaving the
+    // visible threshold resets state immediately (no animation played in
+    // reverse — it just snaps back to the pre-fall pose), so the next
+    // entry plays the fall fresh.
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasFallen(true);
-          observer.disconnect();
-        }
+        setHasFallen(entry.isIntersecting);
       },
       { threshold: 0.35 }
     );
