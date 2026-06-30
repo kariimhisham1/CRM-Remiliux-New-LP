@@ -103,6 +103,7 @@ const PILLS = [
 const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
 const easeOut   = t => 1 - Math.pow(1-t, 3);
 const easeOut2  = t => 1 - Math.pow(1-t, 2);
+const easeIn    = t => t * t * t;
 const clamp01   = n => Math.max(0, Math.min(1, n));
 const band      = (p, s, e) => clamp01((p-s)/(e-s));
 // Mirrors CSS clamp(min, Nvh, max): scales with viewport height but never
@@ -142,6 +143,18 @@ const FRAME_S = TL_BG_S + 0.02, FRAME_E = TL_STEPS_E;
 
 // Integrations
 const INT_S = TL_STEPS_E + 0.04, INT_E = INT_S + 0.07;
+
+// Exit: the dark stage collapses inward, then tumbles down and fades —
+// a handoff cue into the next section's falling card. Runs after
+// integrations finishes; total .wt scroll height was extended (see
+// WhyTeams.css) specifically to give this its own unhurried beat rather
+// than squeezing it into already-tight existing phases.
+const COLLAPSE_S = INT_E + 0.015, COLLAPSE_E = COLLAPSE_S + 0.055;
+const STAGE_FALL_S = COLLAPSE_E, STAGE_FALL_E = STAGE_FALL_S + 0.055;
+// Header and integrations simply fade out over the same overall span,
+// rather than collapsing — keeps the falling stage as the one clear
+// focal motion instead of the whole section tumbling together.
+const EXIT_FADE_S = COLLAPSE_S, EXIT_FADE_E = STAGE_FALL_E;
 
 // Right panel takes 48% of stage width
 const RIGHT_FRAC = 0.48;
@@ -273,6 +286,25 @@ export default function WhyTeams() {
   const intT    = easeOut(band(progress, INT_S, INT_E));
   const intGrow = easeOut(band(progress, INT_S - 0.01, INT_S + 0.06));
 
+  // Exit choreography — collapse the dark stage inward, then drop and
+  // tumble it away in 3D while fading out. Header/integrations just fade
+  // (no collapse) so the stage is the one clear falling object.
+  const collapseT = easeInOut(band(progress, COLLAPSE_S, COLLAPSE_E));
+  const fallT     = easeIn(band(progress, STAGE_FALL_S, STAGE_FALL_E));
+  const exitFade  = 1 - easeOut(band(progress, EXIT_FADE_S, EXIT_FADE_E));
+
+  // Collapse: scales the stage down toward its own center and dims it,
+  // priming it to "drop" in the fall phase that follows immediately after.
+  const collapseScale = 1 - collapseT * 0.18;
+  // Fall: drops down, rotates in 3D, and fades — mirrors the entrance
+  // pose TeamPerformance's card falls FROM, so the handoff reads as one
+  // continuous motion across the section boundary even though they're
+  // separate elements (see TeamPerformance.jsx).
+  const fallY     = fallT * 220;
+  const fallRotX  = fallT * 38;
+  const fallRotZ  = fallT * 6;
+  const fallOpacity = 1 - fallT;
+
   return (
     <div className="wt" ref={wrapRef}>
       <div className="wt__sticky" style={{ background: bgColor }}>
@@ -280,7 +312,7 @@ export default function WhyTeams() {
 
           {/* Header A */}
           <div className="wt__header" style={{
-            opacity: 1-hFlip, position:'absolute',
+            opacity: (1-hFlip) * exitFade, position:'absolute',
             pointerEvents: hFlip > 0.9 ? 'none' : 'auto'
           }}>
             <div className="wt__eyebrow">Platform Capabilities</div>
@@ -290,7 +322,7 @@ export default function WhyTeams() {
 
           {/* Header B */}
           <div className="wt__header" style={{
-            opacity: hFlip, position:'absolute',
+            opacity: hFlip * exitFade, position:'absolute',
             pointerEvents: hFlip < 0.1 ? 'none' : 'auto'
           }}>
             <div className="wt__eyebrow">Automation Engine</div>
@@ -302,8 +334,15 @@ export default function WhyTeams() {
 
           {/* ── STAGE ── */}
           <div className="wt__cards-stage" ref={stageRef}>
-
-            
+            {/* Exit transform wrapper: collapses inward then drops away in 3D.
+                Sits inside stageRef so ResizeObserver measures the untransformed
+                layout box, not the mid-animation compressed state. */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              transformOrigin: 'center center',
+              transform: `perspective(1400px) scale(${collapseScale}) translateY(${fallY}px) rotateX(${fallRotX}deg) rotateZ(${fallRotZ}deg)`,
+              opacity: fallOpacity,
+            }}>
             {/* Outer lighter frame — shows through the gap between the two dark panels */}
             <div className="wt__panels-bg" style={{ opacity: wfOpacity }} />
             {/* Gold border frame */}
@@ -421,13 +460,15 @@ export default function WhyTeams() {
               })}
             </div>
 
+            </div>{/* end exit transform wrapper */}
+
           </div>{/* end stage */}
 
           {/* Integrations */}
           <div className="wt__integrations" style={{
             maxHeight: `${intGrow * clampVH(156, 22.5, 212, viewportH - NAVBAR_H)}px`,
             marginTop: `${intGrow * clampVH(3, 0.5, 9, viewportH - NAVBAR_H)}px`,
-            opacity: intT,
+            opacity: intT * exitFade,
             transform: `translateY(${(1-intT)*16}px)`,
           }}>
             <div className="wt__eyebrow" style={{ marginBottom: 6 }}>Connected Systems</div>
