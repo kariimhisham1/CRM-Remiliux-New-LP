@@ -5,22 +5,23 @@
 }
 
 /* ── Sticky viewport ──
-   Padding scales down on short viewports (laptop browser windows are often
-   under 800px tall) so the frame's content always has room to fit within
-   the fixed 100vh sticky container — fixes the dark card/integrations
-   spilling past the frosted frame's bottom edge on shorter screens. */
+   The site's .navbar is `position: fixed; top: 0` with z-index 100 — it
+   overlaps whatever is underneath rather than pushing it down. Previously
+   .wt__sticky stuck to the true viewport top (top: 0, height: 100vh), so
+   the navbar visually covered the top portion of the centered space,
+   making the frame look flush against the navbar with no gap above it
+   while the full gap remained visible below. Offsetting by the navbar's
+   scrolled height (70px: 42px logo + 14px padding × 2) makes .wt__sticky
+   occupy only the space genuinely below the navbar, so centering now
+   produces an even, real gap on both sides. */
 .wt__sticky {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 70px;
+  height: calc(100vh - 70px);
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Symmetric top/bottom padding so the frame centers evenly in the
-     viewport — previously top padding was much larger than bottom,
-     pushing the frame up against the navbar with a large gap left
-     underneath instead of an even gap on both sides. */
-  padding: clamp(16px, 3.5vh, 56px) 28px;
+  padding: clamp(6px, 1.4vh, 36px) 28px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -37,7 +38,7 @@
   box-shadow:
     0 2px 48px rgba(120, 90, 50, 0.13),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: clamp(14px, 2.8vh, 34px) 52px clamp(12px, 2.4vh, 30px);
+  padding: clamp(8px, 1.6vh, 26px) 52px clamp(8px, 1.6vh, 24px);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -63,7 +64,7 @@
      rendered content (eyebrow + 2-line headline + 2-line body) — this was
      previously overflowing into the stage below at common viewport heights. */
   height: clamp(112px, 17vh, 158px);
-  margin-bottom: clamp(10px, 1.6vh, 22px);
+  margin-bottom: clamp(6px, 1.0vh, 18px);
   flex-shrink: 0;
 }
 .wt__eyebrow {
@@ -95,10 +96,10 @@
 /* ── Stage ── */
 .wt__cards-stage {
   position: relative;
-  /* Floor raised to 300px — below this, 4 timeline steps with full
-     descriptions don't fit and get clipped (e.g. Step 4's description
-     disappearing). This guarantees room regardless of viewport. */
-  height: clamp(300px, 45vh, 420px);
+  /* Floor lowered to 290px (from 300px) after trimming the timeline
+     panel's internal padding — still comfortably fits 4 full steps,
+     while freeing a little room to absorb the navbar-offset fix below. */
+  height: clamp(290px, 45vh, 420px);
   flex-shrink: 0;
 }
 .wt__cards {
@@ -214,7 +215,7 @@
   position: absolute;
   background: #1a1409;
   border-radius: 16px;
-  padding: 16px 28px;
+  padding: 12px 28px;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
@@ -227,8 +228,8 @@
 .wt__timeline-line-track {
   position: absolute;
   left: 42.5px; /* centers on the 30px icon circles (28px panel padding + 15px - 0.5px) */
-  top: 32px;
-  bottom: 32px;
+  top: 28px;
+  bottom: 28px;
   width: 1px;
   background: rgba(201, 168, 76, 0.12);
 }
