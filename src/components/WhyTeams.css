@@ -1,6 +1,11 @@
-/* ── Tall scroll wrapper ── */
+/* ── Tall scroll wrapper ──
+   Extended from 1500vh to 1780vh to give the new collapse+fall exit
+   phase (COLLAPSE_S → STAGE_FALL_E) its own scroll budget without
+   compressing any of the existing flip/shrink/timeline phases. Those
+   phases retain the same absolute vh distance as before; the new vh
+   purely add room at the end for the exit choreography. */
 .wt {
-  height: 1500vh;
+  height: 1780vh;
   position: relative;
 }
 
