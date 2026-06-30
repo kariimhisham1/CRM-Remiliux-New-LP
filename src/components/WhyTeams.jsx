@@ -146,6 +146,12 @@ const INT_S = TL_STEPS_E + 0.04, INT_E = INT_S + 0.07;
 // Right panel takes 48% of stage width
 const RIGHT_FRAC = 0.48;
 
+// Matches .navbar's scrolled height in CSS (42px logo + 14px padding × 2).
+// .wt__sticky is offset below the fixed navbar (see WhyTeams.css), so any
+// JS-driven sizing that should scale with the *visible* space below the
+// navbar needs to subtract this first, not use the raw viewport height.
+const NAVBAR_H = 70;
+
 // Visible gap between the outer lighter frame (.wt__panels-bg) and the two
 // inner dark panels, and the gap between the two inner panels themselves —
 // matches the target design's "frame holding two cards" look.
@@ -419,8 +425,8 @@ export default function WhyTeams() {
 
           {/* Integrations */}
           <div className="wt__integrations" style={{
-            maxHeight: `${intGrow * clampVH(156, 22.5, 212, viewportH)}px`,
-            marginTop: `${intGrow * clampVH(5, 0.8, 12, viewportH)}px`,
+            maxHeight: `${intGrow * clampVH(156, 22.5, 212, viewportH - NAVBAR_H)}px`,
+            marginTop: `${intGrow * clampVH(3, 0.5, 9, viewportH - NAVBAR_H)}px`,
             opacity: intT,
             transform: `translateY(${(1-intT)*16}px)`,
           }}>
