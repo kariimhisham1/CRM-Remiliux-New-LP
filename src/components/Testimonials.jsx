@@ -1,67 +1,92 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import './Testimonials.css';
 
-// ── Inline SVG icons ──────────────────────────────────────────────────────────
-const iconProps = { viewBox:'0 0 20 20', fill:'none', xmlns:'http://www.w3.org/2000/svg' };
+// ── Inline SVGs ───────────────────────────────────────────────────────────────
+const svgProps = { viewBox:'0 0 20 20', fill:'none', xmlns:'http://www.w3.org/2000/svg' };
 const IconStar = () => (
-  <svg {...iconProps}>
+  <svg {...svgProps}>
     <path d="M10 2.5l2.06 4.17 4.6.67-3.33 3.24.79 4.58L10 12.77 5.88 15.16l.79-4.58L3.34 7.34l4.6-.67L10 2.5z"
       stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
   </svg>
 );
 const IconShield = () => (
-  <svg {...iconProps}>
+  <svg {...svgProps}>
     <path d="M10 2.5 3.5 5v4.5c0 3.8 2.8 7.1 6.5 7.8 3.7-.7 6.5-4 6.5-7.8V5L10 2.5z"
       stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
     <path d="M7.5 10l2 2 3-3" stroke="currentColor" strokeWidth="1.3"
       strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
+const IconClock = () => (
+  <svg {...svgProps}>
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M10 6.2V10l3 1.8" stroke="currentColor" strokeWidth="1.4"
+      strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const IconPhone = () => (
+  <svg {...svgProps}>
+    <path d="M5.5 3.5h2.2l1 3.3-1.6 1.4a8.5 8.5 0 0 0 4.2 4.2l1.4-1.6 3.3 1v2.2c0 .9-.8 1.5-1.6 1.4-6-.7-9.6-4.3-10.3-10.3-.1-.8.5-1.6 1.4-1.6Z"
+      stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+  </svg>
+);
+const IconCheck = () => (
+  <svg {...svgProps}>
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.4"/>
+    <path d="M7 10.2 9 12.2 13.2 7.8" stroke="currentColor" strokeWidth="1.4"
+      strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const IconTrophy = () => (
+  <svg {...svgProps}>
+    <path d="M6.5 4h7v4.3a3.5 3.5 0 0 1-7 0V4Z" stroke="currentColor" strokeWidth="1.4"
+      strokeLinejoin="round"/>
+    <path d="M10 11.8V14M7.5 16.3h5" stroke="currentColor" strokeWidth="1.4"
+      strokeLinejoin="round"/>
+  </svg>
+);
 
 // ── Content ───────────────────────────────────────────────────────────────────
-const TESTIMONIALS = [
-  {
-    quote: '"We used to lose warm leads in the gap between inbound inquiry and follow-up. Remiliux turned that gap into a controlled system."',
-    name: 'Marcus Hale',
-    role: 'Founder, Hale Capital Homes',
-  },
-  {
-    quote: '"The accountability layer changed our culture. Managers now know exactly which conversations are moving deals and which reps need coaching."',
-    name: 'Danielle Brooks',
-    role: 'VP of Acquisitions, Summit Property Group',
-  },
-  {
-    quote: '"It feels built for serious operators. The workflow automation, call visibility, and reporting are at the level we expect from enterprise software."',
-    name: 'Ethan Ruiz',
-    role: 'CEO, Northline Wholesaling',
-  },
+// Feature cards — mirrors TeamPerformance's left panel content exactly,
+// so the clone overlay is visually identical to the real component.
+const FEATURES = [
+  { Icon: IconClock,  title: 'Activity Command Center',
+    desc: 'Surface calls, texts, appointments, and next actions by rep, team, and market in one operating view.' },
+  { Icon: IconPhone,  title: 'Call Tracking',
+    desc: 'Monitor answer rates, connection quality, response times, and call outcomes without chasing spreadsheets.' },
+  { Icon: IconCheck,  title: 'Follow-Up Completion',
+    desc: 'Track whether every lead received the required touch pattern and escalate exceptions automatically.' },
+  { Icon: IconTrophy, title: 'Leaderboards & KPIs',
+    desc: 'Rank conversion performance by acquisitions rep, manager, office, and campaign with clean executive clarity.' },
 ];
 
-// ── Easing helpers ─────────────────────────────────────────────────────────
-const easeInOut  = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-const easeOut    = t => 1 - Math.pow(1-t, 3);
-const easeIn     = t => t * t * t;
-const clamp01    = n => Math.max(0, Math.min(1, n));
-const band       = (p, s, e) => clamp01((p-s)/(e-s));
+const TESTIMONIALS = [
+  { quote: '"We used to lose warm leads in the gap between inbound inquiry and follow-up. Remiliux turned that gap into a controlled system."',
+    name: 'Marcus Hale', role: 'Founder, Hale Capital Homes' },
+  { quote: '"The accountability layer changed our culture. Managers now know exactly which conversations are moving deals and which reps need coaching."',
+    name: 'Danielle Brooks', role: 'VP of Acquisitions, Summit Property Group' },
+  { quote: '"It feels built for serious operators. The workflow automation, call visibility, and reporting are at the level we expect from enterprise software."',
+    name: 'Ethan Ruiz', role: 'CEO, Northline Wholesaling' },
+];
 
-// ── Phase timing (0 → 1) ───────────────────────────────────────────────────
-// Phase 0: TeamPerformance parallax push-up + this section's bg fades in.
-const TP_SLIDE_S = 0.00, TP_SLIDE_E = 0.18;
-// Phase 1: Staggered card compress → circle (3 cards, each takes COMPRESS_DUR).
-const COMPRESS_S = 0.08, COMPRESS_STAGGER = 0.06, COMPRESS_DUR = 0.10;
-const COMPRESS_E = COMPRESS_S + 2*COMPRESS_STAGGER + COMPRESS_DUR; // ~0.30
-// Phase 2: Snake path (all 3 circles travel, beads on string).
-const SNAKE_S = COMPRESS_E - 0.02, SNAKE_E = 0.72;
-// Phase 3: Circles arrive and expand back into testimonial cards.
-const EXPAND_S = 0.68, EXPAND_E = 0.86;
-// Phase 4: CTA dark card fades + slides in from below.
-const CTA_S = 0.83, CTA_E = 0.97;
-// Header text fades in during the snake phase.
-const HEADER_S = COMPRESS_S, HEADER_E = SNAKE_S + 0.10;
+// ── Easing ────────────────────────────────────────────────────────────────────
+const easeInOut = t => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+const easeOut   = t => 1 - Math.pow(1-t, 3);
+const easeIn    = t => t * t * t;
+const clamp01   = n => Math.max(0, Math.min(1, n));
+const band      = (p, s, e) => clamp01((p-s)/(e-s));
 
-// ── Catmull-Rom spline sampler ─────────────────────────────────────────────
-// Bead offset: how far behind each circle lags on the shared path.
-const BEAD_OFFSET = 0.33;
+// ── Phase timing ──────────────────────────────────────────────────────────────
+const TP_SLIDE_S  = 0.00, TP_SLIDE_E  = 0.20; // TP cover slides up
+const COMPRESS_S  = 0.04, COMPRESS_E  = 0.22; // 4 cards → 3 dots
+const SNAKE_S     = 0.20, SNAKE_E     = 0.68; // dots snake down
+const EXPAND_S    = 0.64, EXPAND_E    = 0.82; // dots → testimonial cards
+const HEADER_S    = 0.16, HEADER_E    = 0.38; // testimonials header fades in
+const CTA_S       = 0.80, CTA_E       = 0.96; // CTA dark card
+
+// ── Catmull-Rom spline ────────────────────────────────────────────────────────
+const BEAD_OFFSET = 0.34; // how far behind each circle lags on the path
+const CIRCLE_SIZE = 52;   // dot diameter in px
 
 function catmullRomSeg(p0, p1, p2, p3, t) {
   const t2 = t*t, t3 = t*t*t;
@@ -70,60 +95,69 @@ function catmullRomSeg(p0, p1, p2, p3, t) {
     y: 0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3),
   };
 }
-
 function samplePath(waypoints, t) {
   const n = waypoints.length - 1;
-  const seg = Math.min(Math.floor(t * n), n - 1);
-  const lt = t * n - seg;
-  const p0 = waypoints[Math.max(0, seg-1)];
-  const p1 = waypoints[seg];
-  const p2 = waypoints[Math.min(n, seg+1)];
-  const p3 = waypoints[Math.min(n, seg+2)];
+  const seg = Math.min(Math.floor(clamp01(t) * n), n - 1);
+  const lt  = clamp01(t) * n - seg;
+  const p0  = waypoints[Math.max(0, seg-1)];
+  const p1  = waypoints[seg];
+  const p2  = waypoints[Math.min(n, seg+1)];
+  const p3  = waypoints[Math.min(n, seg+2)];
   return catmullRomSeg(p0, p1, p2, p3, lt);
 }
 
-// Build waypoints from container dimensions.
-// All positions are absolute px (not normalized), computed from SW/SH.
-function buildWaypoints(SW, SH, circleSize) {
-  const COLS = 3;
-  const GAP  = 20;
-  const cardW = (SW - (COLS-1)*GAP) / COLS;
-  const cardH = SH * 0.36; // cards occupy ~36% of stage height
-  const cardY = SH * 0.22; // card top starts at 22% of stage
-  // Card centers (start positions for compress)
-  const startCenters = Array.from({length:3}, (_,i) => ({
-    x: i*(cardW+GAP) + cardW/2,
-    y: cardY + cardH/2,
-  }));
-  // Final grid positions (where circles expand back into cards)
-  // Same layout, same Y (the "destination" is the same 3-column grid)
-  const finalCenters = startCenters; // circles return to same positions
-
-  const half = circleSize / 2;
-  const W = SW, H = SH;
-  // Snake path waypoints (absolute px)
+// Build the snake path in absolute px within the sticky viewport.
+// startCenters: where the 3 dots START after compression (top of viewport area).
+// finalCenters: where the testimonial cards end up (middle/lower area).
+function buildWaypoints(startCenters, finalCenters, VW, VH) {
   return [
-    { x: startCenters[0].x, y: startCenters[0].y },        // W0 card1 start
-    { x: startCenters[1].x, y: startCenters[1].y },        // W1 card2 start
-    { x: startCenters[2].x, y: startCenters[2].y },        // W2 card3 start
-    { x: W * 0.92,           y: H * 0.50 },                // W3 curve down right
-    { x: W * 0.50,           y: H * 0.56 },                // W4 midpoint left sweep
-    { x: W * 0.08,           y: H * 0.62 },                // W5 curve down left
-    { x: finalCenters[0].x,  y: finalCenters[0].y },       // W6 card1 final
-    { x: finalCenters[1].x,  y: finalCenters[1].y },       // W7 card2 final
-    { x: finalCenters[2].x,  y: finalCenters[2].y },       // W8 card3 final
+    { x: startCenters[0].x, y: startCenters[0].y },  // dot 0 start
+    { x: startCenters[1].x, y: startCenters[1].y },  // dot 1 start
+    { x: startCenters[2].x, y: startCenters[2].y },  // dot 2 start
+    { x: VW * 0.88,          y: VH * 0.44 },          // curve down right
+    { x: VW * 0.50,          y: VH * 0.52 },          // sweep left
+    { x: VW * 0.12,          y: VH * 0.60 },          // curve down left
+    { x: finalCenters[0].x,  y: finalCenters[0].y }, // card 0 final
+    { x: finalCenters[1].x,  y: finalCenters[1].y }, // card 1 final
+    { x: finalCenters[2].x,  y: finalCenters[2].y }, // card 2 final
   ];
 }
 
-// ── Component ─────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 const NAVBAR_H = 70;
-const CIRCLE_SIZE = 56; // px diameter of compressed circle
 
 export default function Testimonials() {
-  const wrapRef  = useRef(null);
-  const stageRef = useRef(null);
-  const [progress, setProgress]   = useState(0);
-  const [stageSize, setStageSize] = useState({ w: 1200, h: 600 });
+  const wrapRef    = useRef(null);
+  const stickyRef  = useRef(null);
+  const tpFeatRef  = useRef(null); // ref passed into a hidden element to measure TP's real grid
+  const [progress, setProgress]     = useState(0);
+  const [viewport, setViewport]     = useState({ w: 1200, h: 730 });
+  // Measured position of TP's feature grid relative to Testimonials sticky top.
+  // We use this to position the clone cards at progress=0 exactly over the real ones.
+  const [featRect, setFeatRect]     = useState(null);
+  // Final testimonial card geometry (computed from sticky viewport size)
+  const [cardGeo, setCardGeo]       = useState(null);
+
+  // Measure TP's .tp__features position once at mount and on resize.
+  const measureTPFeatures = useCallback(() => {
+    const el = document.querySelector('.tp__features');
+    if (!el || !stickyRef.current) return;
+    const elR   = el.getBoundingClientRect();
+    const stR   = stickyRef.current.getBoundingClientRect();
+    // Position relative to the sticky layer's own top-left corner
+    setFeatRect({
+      top:    elR.top  - stR.top,
+      left:   elR.left - stR.left,
+      width:  elR.width,
+      height: elR.height,
+    });
+  }, []);
+
+  const measureViewport = useCallback(() => {
+    if (!stickyRef.current) return;
+    const r = stickyRef.current.getBoundingClientRect();
+    setViewport({ w: r.width, h: r.height });
+  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -133,113 +167,135 @@ export default function Testimonials() {
       const p    = clamp01(-rect.top / (rect.height - vh));
       setProgress(p);
     };
-    window.addEventListener('scroll', onScroll, { passive:true });
-    window.addEventListener('resize', onScroll, { passive:true });
+    const onResize = () => {
+      measureTPFeatures();
+      measureViewport();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
+    // Initial measurements — slight delay so TP has painted
+    setTimeout(() => { measureTPFeatures(); measureViewport(); }, 100);
     onScroll();
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [measureTPFeatures, measureViewport]);
 
+  // Compute testimonial card geometry from viewport size
   useEffect(() => {
-    if (!stageRef.current) return;
-    const ro = new ResizeObserver(([e]) => {
-      const { width, height } = e.contentRect;
-      if (width > 0) setStageSize({ w: width, h: height });
-    });
-    ro.observe(stageRef.current);
-    return () => ro.disconnect();
-  }, []);
+    const { w, h } = viewport;
+    const COLS = 3, GAP = 20, HPAD = 52;
+    const totalW = w - HPAD * 2;
+    const cw = (totalW - (COLS-1)*GAP) / COLS;
+    const ch = Math.min(280, h * 0.38);
+    const cardY = h * 0.38; // testimonial cards sit in the middle of the viewport
+    const centers = Array.from({ length: 3 }, (_, i) => ({
+      x: HPAD + i*(cw+GAP) + cw/2,
+      y: cardY + ch/2,
+    }));
+    setCardGeo({ cw, ch, cardY, centers, HPAD });
+  }, [viewport]);
 
-  const { w: SW, h: SH } = stageSize;
+  if (!featRect || !cardGeo) {
+    // Not yet measured — render skeleton (hidden, just takes up space for scroll math)
+    return <div className="ts" ref={wrapRef} />;
+  }
 
-  // ── Phase 0: TeamPerformance parallax push ─────────────────────────────
-  const tpSlide = easeInOut(band(progress, TP_SLIDE_S, TP_SLIDE_E));
-  // TP slides up: translateY(0) → translateY(-(100vh - NAVBAR_H))
-  const tpTranslateY = -tpSlide * (window.innerHeight - NAVBAR_H);
-  // Section background fades in over same span
-  const bgOpacity = easeOut(band(progress, TP_SLIDE_S, TP_SLIDE_E + 0.06));
+  // ── Per-card geometry for the 4 feature card clones ─────────────────────
+  // Feature cards sit in a 2×2 grid within featRect
+  const fGAP = 10;
+  const fCW  = (featRect.width - fGAP) / 2;
+  const fCH  = (featRect.height - fGAP) / 2;
+  const featureCards = [
+    { left: featRect.left,           top: featRect.top,           w: fCW, h: fCH }, // top-left
+    { left: featRect.left+fCW+fGAP,  top: featRect.top,           w: fCW, h: fCH }, // top-right
+    { left: featRect.left,           top: featRect.top+fCH+fGAP,  w: fCW, h: fCH }, // bottom-left
+    { left: featRect.left+fCW+fGAP,  top: featRect.top+fCH+fGAP,  w: fCW, h: fCH }, // bottom-right
+  ];
+  // Centers of the 4 feature cards
+  const featureCenters = featureCards.map(c => ({
+    x: c.left + c.w/2, y: c.top + c.h/2,
+  }));
 
-  // ── Phase 1: Card compress → circle ───────────────────────────────────
-  const compressTs = TESTIMONIALS.map((_, i) =>
-    easeInOut(band(progress, COMPRESS_S + i*COMPRESS_STAGGER, COMPRESS_S + i*COMPRESS_STAGGER + COMPRESS_DUR))
-  );
+  // The 3 dot start positions (after card 3 merges into card 2):
+  // dot 0 = card 0 center, dot 1 = card 1 center, dot 2 = midpoint of cards 2+3
+  const dotStartCenters = [
+    featureCenters[0],
+    featureCenters[1],
+    { x: (featureCenters[2].x + featureCenters[3].x)/2,
+      y: (featureCenters[2].y + featureCenters[3].y)/2 },
+  ];
 
-  // Header text
-  const headerT = easeOut(band(progress, HEADER_S, HEADER_E));
+  // ── Animation values ──────────────────────────────────────────────────────
+  const tpSlide    = easeInOut(band(progress, TP_SLIDE_S, TP_SLIDE_E));
+  const tpCoverY   = -tpSlide * viewport.h;
+  const bgOpacity  = easeOut(band(progress, 0.05, TP_SLIDE_E));
+  const headerT    = easeOut(band(progress, HEADER_S, HEADER_E));
+  const ctaT       = easeOut(band(progress, CTA_S, CTA_E));
+  const expandT    = easeInOut(band(progress, EXPAND_S, EXPAND_E));
+  const snakeP     = easeInOut(band(progress, SNAKE_S, SNAKE_E));
+  const compressT  = easeInOut(band(progress, COMPRESS_S, COMPRESS_E));
 
-  // ── Phase 2: Snake path ────────────────────────────────────────────────
-  const snakeProgress = easeInOut(band(progress, SNAKE_S, SNAKE_E));
-  const waypoints = buildWaypoints(SW, SH, CIRCLE_SIZE);
+  // Build waypoints & compute dot positions
+  const waypoints = buildWaypoints(dotStartCenters, cardGeo.centers, viewport.w, viewport.h);
 
-  // ── Phase 3: Expand circle → card ─────────────────────────────────────
-  const expandT = easeInOut(band(progress, EXPAND_S, EXPAND_E));
-  // Content inside card fades in as it expands
-  const cardContentT = easeOut(band(progress, EXPAND_S + 0.06, EXPAND_E));
-
-  // ── Phase 4: CTA dark card ─────────────────────────────────────────────
-  const ctaT = easeOut(band(progress, CTA_S, CTA_E));
-
-  // ── Card geometry ──────────────────────────────────────────────────────
-  const COLS = 3;
-  const GAP  = 20;
-  const cardW = (SW - (COLS-1)*GAP) / COLS;
-  const cardH = SH * 0.36;
-  const cardY = SH * 0.22;
-
-  // Per-circle: compute current position, size, borderRadius
-  const circles = TESTIMONIALS.map((_, i) => {
-    const compress = compressTs[i];
+  // ── Per-circle state ──────────────────────────────────────────────────────
+  // 3 circles: each compresses from its feature-card start, snakes, then expands
+  const circles = Array.from({ length: 3 }, (_, i) => {
+    // Start center (compressed-to-circle center)
+    const sc = dotStartCenters[i];
     // Bead position on snake path
-    const beadT   = clamp01(snakeProgress - i * BEAD_OFFSET);
-    const snakePt = samplePath(waypoints, beadT);
-    // Start center (before any animation: card center in layout)
-    const startX  = i*(cardW+GAP) + cardW/2;
-    const startY  = cardY + cardH/2;
-    // Compress phase: card center → circle center (same position, size shrinks)
-    const cx = startX + (snakePt.x - startX) * compress;
-    const cy = startY + (snakePt.y - startY) * compress;
-    // Final card position for expand phase
-    const finalX = startX; // same as start (returns to grid)
-    const finalY = startY;
-    // During expand, move from snakePt toward final position
-    const ex = snakePt.x + (finalX - snakePt.x) * expandT;
-    const ey = snakePt.y + (finalY - snakePt.y) * expandT;
-    // Combined position: compress then snake then expand
-    // ex/ey are continuous: when expandT=0, ex=snakePt.x which equals
-    // cx when compress=1 (snake phase). So we can always use ex/ey.
-    // Only fall back to cx/cy before compress reaches 1 (no snake yet).
-    const px = compress < 1 ? cx : ex;
-    const py = compress < 1 ? cy : ey;
-    // Size: card → circle → card
-    const fullW = cardW, fullH = cardH;
-    const cw = fullW + (CIRCLE_SIZE - fullW) * compress * (1 - expandT);
-    const ch = fullH + (CIRCLE_SIZE - fullH) * compress * (1 - expandT);
-    // Border radius: card (16px) → circle (50%) → card (16px)
-    const circleProgress = compress * (1 - expandT);
-    const br = 16 + (Math.min(cw,ch)/2 - 16) * circleProgress;
-    // Opacity: card content fades out during compress, fades in on expand
-    const contentOpacity = Math.max(0, (1 - compress * 2)) + cardContentT * compress;
-    return { px, py, cw, ch, br, contentOpacity };
+    const beadT    = clamp01(snakeP - i * BEAD_OFFSET);
+    const snakePt  = samplePath(waypoints, beadT);
+    // During compress: positions stay at feature-card centers,
+    // size shrinks from card size to circle size.
+    // Card size for this dot: for dots 0+1 it's a single card; dot 2 is average of 2 cards.
+    const srcW = i < 2 ? featureCards[i].w : (featureCards[2].w + featureCards[3].w)/2 + fGAP;
+    const srcH = i < 2 ? featureCards[i].h : (featureCards[2].h + featureCards[3].h)/2;
+    // Current width/height: lerp from card size → circle → card (testimonial)
+    const cw = srcW + (CIRCLE_SIZE - srcW) * compressT * (1 - expandT)
+               + (cardGeo.cw - srcW) * expandT;
+    const ch = srcH + (CIRCLE_SIZE - srcH) * compressT * (1 - expandT)
+               + (cardGeo.ch - srcH) * expandT;
+    // Border radius: card → circle → card
+    const circleRatio = compressT * (1 - expandT);
+    const br = 14 + (Math.min(CIRCLE_SIZE,CIRCLE_SIZE)/2 - 14) * circleRatio;
+    // Position: before full compress → at feature card center; after → snaking
+    const ex  = snakePt.x + (cardGeo.centers[i].x - snakePt.x) * expandT;
+    const ey  = snakePt.y + (cardGeo.centers[i].y - snakePt.y) * expandT;
+    const px  = compressT < 1 ? sc.x : ex;
+    const py  = compressT < 1 ? sc.y : ey;
+    // Content visibility: feature card content fades out, testimonial content fades in
+    const featureContentOpacity = Math.max(0, 1 - compressT * 2.5);
+    const testimonialContentOpacity = easeOut(band(progress, EXPAND_S + 0.08, EXPAND_E));
+    return { px, py, cw, ch, br, featureContentOpacity, testimonialContentOpacity,
+             feature: FEATURES[i], testimonial: TESTIMONIALS[i] };
   });
+
+  // 4th feature card fades/shrinks independently (merges toward dot 2)
+  const card3Compress = easeInOut(band(progress, COMPRESS_S, COMPRESS_E - 0.04));
+  const card3Center   = featureCenters[3];
+  const card3TargetX  = dotStartCenters[2].x;
+  const card3TargetY  = dotStartCenters[2].y;
+  const card3X = card3Center.x + (card3TargetX - card3Center.x) * card3Compress;
+  const card3Y = card3Center.y + (card3TargetY - card3Center.y) * card3Compress;
+  const card3W = featureCards[3].w * (1 - card3Compress * 0.85);
+  const card3H = featureCards[3].h * (1 - card3Compress * 0.85);
+  const card3Opacity = 1 - card3Compress;
 
   return (
     <div className="ts" ref={wrapRef}>
-      <div className="ts__sticky" style={{ background: `rgba(194,164,129,${bgOpacity})` }}>
+      <div className="ts__sticky" ref={stickyRef}
+        style={{ background: `rgba(194,164,129,${bgOpacity})` }}>
 
-        {/* TeamPerformance clone layer — slides upward to reveal this section */}
-        {/* This is a blank cover that starts opaque (tan bg matching TP's bg) and
-            slides up, creating the illusion that TP is being pushed off screen */}
-        <div className="ts__tp-cover" style={{
-          transform: `translateY(${tpTranslateY}px)`,
-          opacity: 1 - tpSlide,
-        }} />
+        {/* ── TP cover: slides up taking the background with it ── */}
+        <div className="ts__cover" style={{ transform: `translateY(${tpCoverY}px)` }} />
 
         {/* ── Header ── */}
         <div className="ts__header" style={{
           opacity: headerT,
-          transform: `translateY(${(1-headerT)*24}px)`,
+          transform: `translateY(${(1-headerT)*28}px)`,
         }}>
           <div className="ts__eyebrow">Proof of Scale</div>
           <h2 className="ts__headline">Built to sound like the room<br />you want to sell into.</h2>
@@ -250,32 +306,52 @@ export default function Testimonials() {
           </p>
         </div>
 
-        {/* ── Stage: circles + cards live here ── */}
-        <div className="ts__stage" ref={stageRef}>
-          {circles.map(({ px, py, cw, ch, br, contentOpacity }, i) => {
-            const t = TESTIMONIALS[i];
-            return (
-              <div
-                key={i}
-                className="ts__card"
-                style={{
-                  left: px - cw/2,
-                  top:  py - ch/2,
-                  width: cw,
-                  height: ch,
-                  borderRadius: br,
-                }}
-              >
-                <div className="ts__card-inner" style={{ opacity: contentOpacity }}>
-                  <div className="ts__star"><IconStar /></div>
-                  <p className="ts__quote">{t.quote}</p>
-                  <div className="ts__divider" />
-                  <div className="ts__name">{t.name}</div>
-                  <div className="ts__role">{t.role}</div>
-                </div>
+        {/* ── Animation layer: circles morphing between feature cards and testimonials ── */}
+        <div className="ts__anim-layer">
+
+          {/* 4th feature card (merges/shrinks into dot 2) */}
+          {card3Compress < 0.99 && (
+            <div className="ts__feature-card" style={{
+              left: card3X - card3W/2,
+              top:  card3Y - card3H/2,
+              width: card3W, height: card3H,
+              opacity: card3Opacity,
+              borderRadius: 14,
+            }}>
+              <div className="ts__feature-inner" style={{ opacity: Math.max(0, 1 - card3Compress * 3) }}>
+                <div className="ts__feat-icon"><IconTrophy /></div>
+                <div className="ts__feat-title">{FEATURES[3].title}</div>
+                <p className="ts__feat-desc">{FEATURES[3].desc}</p>
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* 3 main animated circles */}
+          {circles.map(({ px, py, cw, ch, br,
+            featureContentOpacity, testimonialContentOpacity,
+            feature, testimonial }, i) => (
+            <div key={i} className="ts__morph-card" style={{
+              left: px - cw/2,
+              top:  py - ch/2,
+              width: cw, height: ch,
+              borderRadius: br,
+            }}>
+              {/* Feature card content (fades out during compress) */}
+              <div className="ts__feature-inner" style={{ opacity: featureContentOpacity, position:'absolute', inset:0 }}>
+                <div className="ts__feat-icon"><feature.Icon /></div>
+                <div className="ts__feat-title">{feature.title}</div>
+                <p className="ts__feat-desc">{feature.desc}</p>
+              </div>
+              {/* Testimonial card content (fades in during expand) */}
+              <div className="ts__testimonial-inner" style={{ opacity: testimonialContentOpacity, position:'absolute', inset:0 }}>
+                <div className="ts__star"><IconStar /></div>
+                <p className="ts__quote">{testimonial.quote}</p>
+                <div className="ts__divider" />
+                <div className="ts__name">{testimonial.name}</div>
+                <div className="ts__role">{testimonial.role}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* ── CTA dark card ── */}
@@ -287,9 +363,7 @@ export default function Testimonials() {
           <div className="ts__cta">
             <div className="ts__cta-glow" />
             <div className="ts__cta-eyebrow">Private Demo</div>
-            <h2 className="ts__cta-headline">
-              Stop losing deals to<br />poor follow-up.
-            </h2>
+            <h2 className="ts__cta-headline">Stop losing deals to<br />poor follow-up.</h2>
             <p className="ts__cta-body">
               Remiliux is built to capture, sequence, and close —
               manage every opportunity with enterprise-grade precision.
