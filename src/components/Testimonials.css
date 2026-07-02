@@ -7,26 +7,21 @@
 /* ── Sticky viewport ── */
 .ts__sticky {
   position: sticky;
-  top: 70px; /* below fixed navbar */
+  top: 70px;
   height: calc(100vh - 70px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
-  /* background is set inline (fades in via bgOpacity) */
+  z-index: 10; /* sits above TeamPerformance so the cover layer works */
 }
 
-/* ── TeamPerformance cover layer ──
-   A blank panel matching TP's background color that starts covering the
-   viewport and slides upward as the section reveals, creating the
-   illusion that TeamPerformance is being physically pushed off-screen.
-   z-index sits above everything in this section so the slide-up reads
-   as TP moving, not this section's content appearing from behind. */
-.ts__tp-cover {
+/* ── TP cover: tan background that slides up exposing this section ── */
+.ts__cover {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, #c9ad8c 0%, #c2a481 100%);
-  z-index: 20;
+  z-index: 5;
   will-change: transform;
   pointer-events: none;
 }
@@ -34,12 +29,13 @@
 /* ── Header ── */
 .ts__header {
   flex-shrink: 0;
-  padding: 36px 52px 0;
+  padding: 32px 52px 0;
   max-width: 1260px;
   width: 100%;
   box-sizing: border-box;
-  align-self: flex-start;
   will-change: transform, opacity;
+  z-index: 2;
+  position: relative;
 }
 .ts__eyebrow {
   font-family: var(--font-body, sans-serif);
@@ -61,52 +57,82 @@
 }
 .ts__body {
   font-family: var(--font-body, sans-serif);
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.65;
   color: rgba(42, 32, 21, 0.62);
   max-width: 520px;
-  margin-bottom: 0;
+  margin: 0;
 }
 
-/* ── Stage: absolute-positioned cards/circles live here ── */
-.ts__stage {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  margin: 0 52px;
-}
-
-/* ── Animated card/circle ── */
-.ts__card {
+/* ── Animation layer: all morphing cards/circles live here ── */
+.ts__anim-layer {
   position: absolute;
-  background: rgba(250, 247, 242, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 8px 32px rgba(90, 65, 35, 0.12);
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── Base card style shared by feature clones and testimonial expansions ── */
+.ts__morph-card,
+.ts__feature-card {
+  position: absolute;
+  background: rgba(250, 247, 242, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 32px rgba(90, 65, 35, 0.13);
   box-sizing: border-box;
   overflow: hidden;
-  will-change: transform, border-radius;
-  /* No CSS transition — position/size are driven frame-by-frame by scroll
-     progress via inline styles. A transition here would fight the scroll
-     math and cause a laggy, janky feel. */
+  /* No CSS transition — scroll-driven frame-by-frame via inline styles */
 }
-.ts__card-inner {
-  padding: 24px 22px 22px;
+
+/* ── Feature card content (fades out during compress) ── */
+.ts__feature-inner {
+  padding: 18px 18px 20px;
   display: flex;
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
-  will-change: opacity;
+}
+.ts__feat-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold, #C9A84C);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.ts__feat-icon svg { width: 15px; height: 15px; }
+.ts__feat-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #2a2015;
+  margin-bottom: 6px;
+}
+.ts__feat-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(42, 32, 21, 0.58);
+  margin: 0;
+}
+
+/* ── Testimonial card content (fades in during expand) ── */
+.ts__testimonial-inner {
+  padding: 22px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
 }
 .ts__star {
   color: var(--gold, #C9A84C);
   width: 18px; height: 18px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   flex-shrink: 0;
 }
 .ts__star svg { width: 18px; height: 18px; }
 .ts__quote {
   font-family: var(--font-body, sans-serif);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.65;
   color: #2a2015;
   margin: 0 0 auto;
@@ -115,7 +141,7 @@
 .ts__divider {
   height: 1px;
   background: rgba(42, 32, 21, 0.1);
-  margin: 16px 0 14px;
+  margin: 14px 0 12px;
   flex-shrink: 0;
 }
 .ts__name {
@@ -127,31 +153,31 @@
 }
 .ts__role {
   font-family: var(--font-body, sans-serif);
-  font-size: 12px;
+  font-size: 11.5px;
   color: rgba(42, 32, 21, 0.55);
 }
 
-/* ── CTA dark card wrapper ── */
+/* ── CTA dark card ── */
 .ts__cta-wrap {
-  flex-shrink: 0;
-  margin: 0 52px 28px;
+  position: absolute;
+  bottom: 24px;
+  left: 52px;
+  right: 52px;
   will-change: transform, opacity;
+  z-index: 4;
 }
 .ts__cta {
   position: relative;
   background: #0f0f0f;
   border-radius: 20px;
-  padding: 44px 52px 44px;
+  padding: 40px 52px;
   overflow: hidden;
 }
-/* Ambient warm glow in the center — matches the screenshot's golden halo */
 .ts__cta-glow {
   position: absolute;
-  top: 40%;
-  left: 50%;
+  top: 40%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 340px;
-  height: 200px;
+  width: 340px; height: 200px;
   background: radial-gradient(ellipse, rgba(180,140,60,0.22) 0%, transparent 70%);
   pointer-events: none;
 }
@@ -162,24 +188,24 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--gold, #C9A84C);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .ts__cta-headline {
   font-family: var(--font-display, serif);
-  font-size: clamp(28px, 3.5vw, 48px);
+  font-size: clamp(26px, 3.2vw, 44px);
   font-weight: 800;
   color: rgba(245, 234, 216, 0.85);
   line-height: 1.1;
   letter-spacing: -0.02em;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .ts__cta-body {
   font-family: var(--font-body, sans-serif);
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.65;
   color: rgba(245, 234, 216, 0.45);
   max-width: 480px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 .ts__cta-actions {
   display: flex;
@@ -197,14 +223,10 @@
   cursor: pointer;
   padding: 12px 24px;
   border-radius: 999px;
-  letter-spacing: 0.01em;
   white-space: nowrap;
   transition: background 0.2s, transform 0.15s;
 }
-.ts__cta-btn:hover {
-  background: #d4b05a;
-  transform: translateY(-1px);
-}
+.ts__cta-btn:hover { background: #d4b05a; transform: translateY(-1px); }
 .ts__cta-input {
   display: flex;
   align-items: center;
@@ -214,14 +236,13 @@
   border-radius: 999px;
   padding: 11px 20px;
   flex: 1;
-  min-width: 220px;
-  max-width: 360px;
+  min-width: 200px;
+  max-width: 340px;
 }
 .ts__cta-input-icon {
   color: rgba(255,255,255,0.4);
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
 }
 .ts__cta-input-icon svg { width: 15px; height: 15px; }
 .ts__cta-input input {
@@ -233,18 +254,17 @@
   font-size: 13.5px;
   width: 100%;
 }
-.ts__cta-input input::placeholder {
-  color: rgba(255,255,255,0.3);
-}
+.ts__cta-input input::placeholder { color: rgba(255,255,255,0.3); }
 
-/* Reduced motion: skip animation, show final state directly */
+/* Reduced motion: skip animation */
 @media (prefers-reduced-motion: reduce) {
   .ts { height: auto; }
   .ts__sticky { position: relative; top: auto; height: auto; }
-  .ts__tp-cover { display: none; }
-  .ts__card { position: relative; width: calc(33.33% - 14px) !important;
-    height: auto !important; left: auto !important; top: auto !important;
-    border-radius: 16px !important; }
-  .ts__stage { display: flex; gap: 20px; height: auto; }
-  .ts__card-inner { opacity: 1 !important; }
+  .ts__cover { display: none; }
+  .ts__anim-layer { position: relative; display: flex; gap: 20px; padding: 20px 52px; }
+  .ts__morph-card {
+    position: relative !important; left: auto !important; top: auto !important;
+    width: calc(33.33% - 14px) !important; height: auto !important;
+    border-radius: 14px !important; flex: 1;
+  }
 }
